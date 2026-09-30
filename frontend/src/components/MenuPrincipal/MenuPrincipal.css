@@ -1,0 +1,31 @@
+.menu-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+}
+
+.menu-principal__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #d8dde5;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.menu-principal__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-principal__item--ativo {
+  background: #2f6fed;
+  color: #fff;
+}
+
+.menu-principal__icone {
+  width: 20px;
+  text-align: center;
+}

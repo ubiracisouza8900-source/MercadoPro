@@ -1,0 +1,33 @@
+.tabela-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #eef1f4;
+  border-radius: 10px;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabela thead {
+  background: #f7f9fb;
+}
+
+.tabela th,
+.tabela td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.tabela tbody tr:hover {
+  background: #fafbfc;
+}
+
+.tabela-vazia {
+  text-align: center;
+  color: #8a94a6;
+  padding: 24px;
+}

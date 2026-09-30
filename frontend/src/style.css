@@ -1,0 +1,39 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f6f8;
+  color: #1c1f26;
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #14171f;
+}
+
+.login-caixa {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-caixa h2 {
+  margin-bottom: 4px;
+}
+
+.login-caixa p {
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-size: 14px;
+}

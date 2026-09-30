@@ -1,0 +1,23 @@
+.header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.header__titulo {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1c1f26;
+}
+
+.header__usuario {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: #4b5563;
+}

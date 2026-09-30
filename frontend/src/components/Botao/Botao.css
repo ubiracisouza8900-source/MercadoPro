@@ -1,0 +1,55 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.botao:active {
+  transform: scale(0.98);
+}
+
+.botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botao--primario {
+  background-color: #2f6fed;
+  color: #fff;
+}
+
+.botao--secundario {
+  background-color: #e7ebf0;
+  color: #1c1f26;
+}
+
+.botao--perigo {
+  background-color: #e5484d;
+  color: #fff;
+}
+
+.botao--sucesso {
+  background-color: #21a366;
+  color: #fff;
+}
+
+.botao:hover {
+  filter: brightness(0.95);
+}
+
+.botao--full {
+  width: 100%;
+}
+
+.botao__icone {
+  display: flex;
+  align-items: center;
+}
