@@ -1,6 +1,5 @@
+
 import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
 import Tabela, { ColunaTabela } from "../components/Tabela";
 import Modal from "../components/Modal";
 import Input from "../components/Input";
@@ -104,19 +103,19 @@ const Produtos: React.FC = () => {
 
       alert("Produto cadastrado com sucesso!");
     } catch (error) {
-      console.error(
-        "Erro ao salvar produto:",
-        error
-      );
+  console.error(
+    "Erro ao salvar produto:",
+    error
+  );
 
-      const apiError = error as any;
+  const apiError = error as any;
 
-      const mensagem =
-        apiError.response?.data?.mensagem ||
-        apiError.response?.data?.message ||
-        "Erro interno ao salvar o produto.";
+  const mensagem =
+    apiError.response?.data?.mensagem ||
+    apiError.response?.data?.message ||
+    "Erro interno ao salvar o produto.";
 
-      alert(`Não foi possível salvar: ${mensagem}`);
+  alert(`Não foi possível salvar: ${mensagem}`);
     }
   }
 
@@ -151,13 +150,10 @@ const Produtos: React.FC = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      <Sidebar />
+      
 
       <div style={{ flex: 1 }}>
-        <Header
-          nomeUsuario="Administrador"
-          aoSair={() => {}}
-        />
+       
 
         <main style={{ padding: 24 }}>
           <div

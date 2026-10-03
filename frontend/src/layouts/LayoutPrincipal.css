@@ -1,0 +1,15 @@
+.layout-principal {
+  min-height: 100vh;
+  background: #f5f6f8;
+}
+
+.layout-conteudo {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.conteudo-principal {
+  flex: 1;
+  padding: 24px;
+  overflow-x: auto;
+}
