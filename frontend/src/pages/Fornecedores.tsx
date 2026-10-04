@@ -1,38 +1,94 @@
 import React, { useEffect, useState } from "react";
-import Tabela, { ColunaTabela } from "../components/Tabela";
+
+import Tabela, {
+  ColunaTabela,
+} from "../components/Tabela";
+
 import Modal from "../components/Modal";
 import Input from "../components/Input";
 import Botao from "../components/Botao";
+
 import { Fornecedor } from "../types/Fornecedor";
 import api from "../services/api";
 
-const Fornecedores: React.FC = () => {
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+interface FornecedorTela extends Fornecedor {
+  cep?: string;
+  nr?: number;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+}
 
-  const [modalAberto, setModalAberto] = useState(false);
+interface RespostaCep {
+  cep?: string;
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+}
+
+const Fornecedores: React.FC = () => {
+  const [fornecedores, setFornecedores] =
+    useState<FornecedorTela[]>([]);
+
+  const [modalAberto, setModalAberto] =
+    useState(false);
 
   const [fornecedorEditando, setFornecedorEditando] =
     useState<number | null>(null);
 
-  const [pesquisa, setPesquisa] = useState("");
+  const [pesquisa, setPesquisa] =
+    useState("");
 
-  const [nome, setNome] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [email, setEmail] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [nome, setNome] =
+    useState("");
+
+  const [cnpj, setCnpj] =
+    useState("");
+
+  const [telefone, setTelefone] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [cep, setCep] =
+    useState("");
+
+  const [endereco, setEndereco] =
+    useState("");
+
+  const [nr, setNr] =
+    useState("");
+
+  const [bairro, setBairro] =
+    useState("");
+
+  const [cidade, setCidade] =
+    useState("");
+
+  const [uf, setUf] =
+    useState("");
+
   const [produtosFornecidos, setProdutosFornecidos] =
     useState("");
+
+  const [buscandoCep, setBuscandoCep] =
+    useState(false);
 
   useEffect(() => {
     let ativo = true;
 
     async function carregarFornecedores() {
       try {
-        const resposta = await api.get("/fornecedores");
+        const resposta =
+          await api.get("/fornecedores");
 
         if (ativo) {
-          setFornecedores(resposta.data);
+          setFornecedores(
+            resposta.data
+          );
         }
       } catch (error) {
         console.error(
@@ -53,18 +109,19 @@ const Fornecedores: React.FC = () => {
     };
   }, []);
 
-  /*
-   * Validação matemática do CNPJ
-   */
-  function validarCNPJ(valor: string): boolean {
-    const numero = valor.replace(/\D/g, "");
+  function validarCNPJ(
+    valor: string
+  ): boolean {
+    const numero =
+      valor.replace(/\D/g, "");
 
     if (numero.length !== 14) {
       return false;
     }
 
-    // Impede CNPJ formado pelo mesmo número
-    if (/^(\d)\1{13}$/.test(numero)) {
+    if (
+      /^(\d)\1{13}$/.test(numero)
+    ) {
       return false;
     }
 
@@ -74,35 +131,57 @@ const Fornecedores: React.FC = () => {
     ): number => {
       let soma = 0;
 
-      for (let i = 0; i < pesos.length; i++) {
-        soma += Number(base[i]) * pesos[i];
+      for (
+        let i = 0;
+        i < pesos.length;
+        i++
+      ) {
+        soma +=
+          Number(base[i]) *
+          pesos[i];
       }
 
       const resto = soma % 11;
 
-      return resto < 2 ? 0 : 11 - resto;
+      return resto < 2
+        ? 0
+        : 11 - resto;
     };
 
-    const primeiroDigito = calcularDigito(
-      numero.substring(0, 12),
-      [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-    );
+    const primeiroDigito =
+      calcularDigito(
+        numero.substring(0, 12),
+        [
+          5, 4, 3, 2,
+          9, 8, 7, 6,
+          5, 4, 3, 2,
+        ]
+      );
 
     if (
       primeiroDigito !==
-      Number(numero.charAt(12))
+      Number(
+        numero.charAt(12)
+      )
     ) {
       return false;
     }
 
-    const segundoDigito = calcularDigito(
-      numero.substring(0, 13),
-      [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-    );
+    const segundoDigito =
+      calcularDigito(
+        numero.substring(0, 13),
+        [
+          6, 5, 4, 3, 2,
+          9, 8, 7, 6, 5,
+          4, 3, 2,
+        ]
+      );
 
     if (
       segundoDigito !==
-      Number(numero.charAt(13))
+      Number(
+        numero.charAt(13)
+      )
     ) {
       return false;
     }
@@ -110,12 +189,100 @@ const Fornecedores: React.FC = () => {
     return true;
   }
 
+  function formatarCep(
+    valor: string
+  ): string {
+    const numeros =
+      valor
+        .replace(/\D/g, "")
+        .slice(0, 8);
+
+    if (numeros.length <= 5) {
+      return numeros;
+    }
+
+    return `${numeros.slice(
+      0,
+      5
+    )}-${numeros.slice(5)}`;
+  }
+
+  async function buscarCep(
+    valor: string
+  ) {
+    const cepNumerico =
+      valor.replace(/\D/g, "");
+
+    if (
+      cepNumerico.length !== 8
+    ) {
+      return;
+    }
+
+    try {
+      setBuscandoCep(true);
+
+      const resposta =
+        await fetch(
+          `https://viacep.com.br/ws/${cepNumerico}/json/`
+        );
+
+      if (!resposta.ok) {
+        throw new Error(
+          "Erro ao consultar o CEP."
+        );
+      }
+
+      const dados =
+        (await resposta.json()) as RespostaCep;
+
+      if (dados.erro) {
+        alert(
+          "CEP não encontrado."
+        );
+        return;
+      }
+
+      setEndereco(
+        dados.logradouro ?? ""
+      );
+
+      setBairro(
+        dados.bairro ?? ""
+      );
+
+      setCidade(
+        dados.localidade ?? ""
+      );
+
+      setUf(
+        dados.uf ?? ""
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao buscar CEP:",
+        error
+      );
+
+      alert(
+        "Não foi possível consultar o CEP."
+      );
+    } finally {
+      setBuscandoCep(false);
+    }
+  }
+
   function limparFormulario() {
     setNome("");
     setCnpj("");
     setTelefone("");
     setEmail("");
+    setCep("");
     setEndereco("");
+    setNr("");
+    setBairro("");
+    setCidade("");
+    setUf("");
     setProdutosFornecidos("");
     setFornecedorEditando(null);
   }
@@ -126,17 +293,58 @@ const Fornecedores: React.FC = () => {
   }
 
   function editarFornecedor(
-    fornecedor: Fornecedor
+    fornecedor: FornecedorTela
   ) {
     setFornecedorEditando(
       fornecedor.fornecedor_id
     );
 
-    setNome(fornecedor.nome);
-    setCnpj(fornecedor.cnpj ?? "");
-    setTelefone(fornecedor.telefone ?? "");
-    setEmail(fornecedor.email ?? "");
-    setEndereco(fornecedor.endereco ?? "");
+    setNome(
+      fornecedor.nome ?? ""
+    );
+
+    setCnpj(
+      fornecedor.cnpj ?? ""
+    );
+
+    setTelefone(
+      fornecedor.telefone ?? ""
+    );
+
+    setEmail(
+      fornecedor.email ?? ""
+    );
+
+    setCep(
+      fornecedor.cep ?? ""
+    );
+
+    setEndereco(
+      fornecedor.endereco ?? ""
+    );
+
+    setNr(
+      fornecedor.nr !==
+        undefined &&
+      fornecedor.nr !== null
+        ? String(
+            fornecedor.nr
+          )
+        : ""
+    );
+
+    setBairro(
+      fornecedor.bairro ?? ""
+    );
+
+    setCidade(
+      fornecedor.cidade ?? ""
+    );
+
+    setUf(
+      fornecedor.uf ?? ""
+    );
+
     setProdutosFornecidos(
       fornecedor.produtos_fornecidos ?? ""
     );
@@ -146,30 +354,97 @@ const Fornecedores: React.FC = () => {
 
   async function salvar() {
     if (!nome.trim()) {
-      alert("Informe o nome do fornecedor.");
+      alert(
+        "Informe o nome do fornecedor."
+      );
       return;
     }
 
-    /*
-     * CNPJ é obrigatório
-     * e deve possuir 14 números válidos.
-     */
     if (!cnpj.trim()) {
-      alert("Informe o CNPJ do fornecedor.");
+      alert(
+        "Informe o CNPJ do fornecedor."
+      );
       return;
     }
 
-    const cnpjNumerico = cnpj.replace(/\D/g, "");
+    const cnpjNumerico =
+      cnpj.replace(/\D/g, "");
 
-    if (cnpjNumerico.length !== 14) {
+    if (
+      cnpjNumerico.length !== 14
+    ) {
       alert(
         "O CNPJ deve possuir exatamente 14 números."
       );
       return;
     }
 
-    if (!validarCNPJ(cnpjNumerico)) {
-      alert("Informe um CNPJ válido.");
+    if (
+      !validarCNPJ(
+        cnpjNumerico
+      )
+    ) {
+      alert(
+        "Informe um CNPJ válido."
+      );
+      return;
+    }
+
+    const cepNumerico =
+      cep.replace(/\D/g, "");
+
+    if (
+      cepNumerico.length !== 8
+    ) {
+      alert(
+        "Informe um CEP válido com 8 números."
+      );
+      return;
+    }
+
+    const numeroFornecedor =
+      Number(
+        nr.replace(/\D/g, "")
+      );
+
+    if (
+      !nr.trim() ||
+      !Number.isFinite(
+        numeroFornecedor
+      ) ||
+      numeroFornecedor <= 0
+    ) {
+      alert(
+        "Informe o número do endereço."
+      );
+      return;
+    }
+
+    if (!endereco.trim()) {
+      alert(
+        "Informe o endereço."
+      );
+      return;
+    }
+
+    if (!bairro.trim()) {
+      alert(
+        "Informe o bairro."
+      );
+      return;
+    }
+
+    if (!cidade.trim()) {
+      alert(
+        "Informe a cidade."
+      );
+      return;
+    }
+
+    if (!uf.trim()) {
+      alert(
+        "Informe a UF."
+      );
       return;
     }
 
@@ -177,7 +452,6 @@ const Fornecedores: React.FC = () => {
       const dados = {
         nome: nome.trim(),
 
-        // Envia somente números para o banco
         cnpj: cnpjNumerico,
 
         telefone:
@@ -186,14 +460,32 @@ const Fornecedores: React.FC = () => {
         email:
           email.trim() || null,
 
+        cep: cepNumerico,
+
         endereco:
           endereco.trim() || null,
 
+        nr: numeroFornecedor,
+
+        bairro:
+          bairro.trim() || null,
+
+        cidade:
+          cidade.trim() || null,
+
+        uf:
+          uf.trim().toUpperCase() ||
+          null,
+
         produtos_fornecidos:
-          produtosFornecidos.trim() || null,
+          produtosFornecidos.trim() ||
+          null,
       };
 
-      if (fornecedorEditando !== null) {
+      if (
+        fornecedorEditando !==
+        null
+      ) {
         await api.put(
           `/fornecedores/${fornecedorEditando}`,
           dados
@@ -214,9 +506,13 @@ const Fornecedores: React.FC = () => {
       }
 
       const resposta =
-        await api.get("/fornecedores");
+        await api.get(
+          "/fornecedores"
+        );
 
-      setFornecedores(resposta.data);
+      setFornecedores(
+        resposta.data
+      );
 
       setModalAberto(false);
 
@@ -234,11 +530,12 @@ const Fornecedores: React.FC = () => {
   }
 
   async function excluirFornecedor(
-    fornecedor: Fornecedor
+    fornecedor: FornecedorTela
   ) {
-    const confirmar = window.confirm(
-      `Deseja realmente excluir o fornecedor "${fornecedor.nome}"?`
-    );
+    const confirmar =
+      window.confirm(
+        `Deseja realmente excluir o fornecedor "${fornecedor.nome}"?`
+      );
 
     if (!confirmar) {
       return;
@@ -250,9 +547,13 @@ const Fornecedores: React.FC = () => {
       );
 
       const resposta =
-        await api.get("/fornecedores");
+        await api.get(
+          "/fornecedores"
+        );
 
-      setFornecedores(resposta.data);
+      setFornecedores(
+        resposta.data
+      );
 
       alert(
         "Fornecedor excluído com sucesso!"
@@ -272,9 +573,10 @@ const Fornecedores: React.FC = () => {
   const fornecedoresFiltrados =
     fornecedores.filter(
       (fornecedor) => {
-        const termo = pesquisa
-          .toLowerCase()
-          .trim();
+        const termo =
+          pesquisa
+            .toLowerCase()
+            .trim();
 
         if (!termo) {
           return true;
@@ -293,7 +595,19 @@ const Fornecedores: React.FC = () => {
           fornecedor.email
             ?.toLowerCase()
             .includes(termo) ||
+          fornecedor.cep
+            ?.toLowerCase()
+            .includes(termo) ||
           fornecedor.endereco
+            ?.toLowerCase()
+            .includes(termo) ||
+          fornecedor.bairro
+            ?.toLowerCase()
+            .includes(termo) ||
+          fornecedor.cidade
+            ?.toLowerCase()
+            .includes(termo) ||
+          fornecedor.uf
             ?.toLowerCase()
             .includes(termo) ||
           fornecedor.produtos_fornecidos
@@ -303,7 +617,7 @@ const Fornecedores: React.FC = () => {
       }
     );
 
-  const colunas: ColunaTabela<Fornecedor>[] =
+  const colunas: ColunaTabela<FornecedorTela>[] =
     [
       {
         chave: "nome",
@@ -326,17 +640,53 @@ const Fornecedores: React.FC = () => {
       },
 
       {
+        chave: "cep",
+        titulo: "CEP",
+      },
+
+      {
         chave: "endereco",
         titulo: "Endereço",
+        render: (
+          valor,
+          fornecedor
+        ) => {
+          const numero =
+            fornecedor.nr
+              ? `, ${fornecedor.nr}`
+              : "";
+
+          return `${String(
+            valor ?? ""
+          )}${numero}`;
+        },
       },
 
       {
-        chave: "produtos_fornecidos",
-        titulo: "Produtos fornecidos",
+        chave: "bairro",
+        titulo: "Bairro",
       },
 
       {
-        chave: "fornecedor_id",
+        chave: "cidade",
+        titulo: "Cidade",
+      },
+
+      {
+        chave: "uf",
+        titulo: "UF",
+      },
+
+      {
+        chave:
+          "produtos_fornecidos",
+        titulo:
+          "Produtos fornecidos",
+      },
+
+      {
+        chave:
+          "fornecedor_id",
         titulo: "Ações",
 
         render: (
@@ -374,7 +724,11 @@ const Fornecedores: React.FC = () => {
     ];
 
   return (
-    <main style={{ padding: 24 }}>
+    <main
+      style={{
+        padding: 24,
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -385,7 +739,9 @@ const Fornecedores: React.FC = () => {
           gap: 16,
         }}
       >
-        <h2>Fornecedores</h2>
+        <h2>
+          Fornecedores
+        </h2>
 
         <Botao
           texto="Novo Fornecedor"
@@ -400,12 +756,15 @@ const Fornecedores: React.FC = () => {
         placeholder="Pesquisar fornecedor..."
         value={pesquisa}
         onChange={(e) =>
-          setPesquisa(e.target.value)
+          setPesquisa(
+            e.target.value
+          )
         }
         style={{
           width: "100%",
           maxWidth: 500,
-          padding: "10px 12px",
+          padding:
+            "10px 12px",
           marginBottom: 20,
           border:
             "1px solid #d1d5db",
@@ -420,7 +779,9 @@ const Fornecedores: React.FC = () => {
         dados={
           fornecedoresFiltrados
         }
-        chaveLinha={(fornecedor) =>
+        chaveLinha={(
+          fornecedor
+        ) =>
           String(
             fornecedor.fornecedor_id
           )
@@ -430,7 +791,8 @@ const Fornecedores: React.FC = () => {
       <Modal
         aberto={modalAberto}
         titulo={
-          fornecedorEditando !== null
+          fornecedorEditando !==
+          null
             ? "Editar Fornecedor"
             : "Novo Fornecedor"
         }
@@ -440,24 +802,28 @@ const Fornecedores: React.FC = () => {
         }}
         aoConfirmar={salvar}
         textoConfirmar={
-          fornecedorEditando !== null
+          fornecedorEditando !==
+          null
             ? "Atualizar"
             : "Salvar"
         }
       >
         <Input
-          label="Nome"
+          label="Nome *"
           valor={nome}
           aoAlterar={setNome}
         />
 
         <Input
-          label="CNPJ"
+          label="CNPJ *"
           valor={cnpj}
           aoAlterar={(valor) => {
             const somenteNumeros =
               valor
-                .replace(/\D/g, "")
+                .replace(
+                  /\D/g,
+                  ""
+                )
                 .slice(0, 14);
 
             setCnpj(
@@ -469,20 +835,113 @@ const Fornecedores: React.FC = () => {
         <Input
           label="Telefone"
           valor={telefone}
-          aoAlterar={setTelefone}
+          aoAlterar={
+            setTelefone
+          }
         />
 
         <Input
           label="E-mail"
           tipo="email"
           valor={email}
-          aoAlterar={setEmail}
+          aoAlterar={
+            setEmail
+          }
         />
 
         <Input
-          label="Endereço"
+          label="CEP *"
+          valor={formatarCep(cep)}
+          aoAlterar={async (
+            valor
+          ) => {
+            const somenteNumeros =
+              valor
+                .replace(
+                  /\D/g,
+                  ""
+                )
+                .slice(0, 8);
+
+            setCep(
+              somenteNumeros
+            );
+
+            if (
+              somenteNumeros.length ===
+              8
+            ) {
+              await buscarCep(
+                somenteNumeros
+              );
+            }
+          }}
+        />
+
+        {buscandoCep && (
+          <p
+            style={{
+              margin:
+                "4px 0",
+              fontSize: 13,
+            }}
+          >
+            Buscando endereço pelo CEP...
+          </p>
+        )}
+
+        <Input
+          label="Endereço *"
           valor={endereco}
-          aoAlterar={setEndereco}
+          aoAlterar={
+            setEndereco
+          }
+        />
+
+        <Input
+          label="Número *"
+          valor={nr}
+          aoAlterar={(valor) => {
+            setNr(
+              valor
+                .replace(
+                  /\D/g,
+                  ""
+                )
+            );
+          }}
+        />
+
+        <Input
+          label="Bairro *"
+          valor={bairro}
+          aoAlterar={
+            setBairro
+          }
+        />
+
+        <Input
+          label="Cidade *"
+          valor={cidade}
+          aoAlterar={
+            setCidade
+          }
+        />
+
+        <Input
+          label="UF *"
+          valor={uf}
+          aoAlterar={(valor) => {
+            setUf(
+              valor
+                .replace(
+                  /[^a-zA-Z]/g,
+                  ""
+                )
+                .slice(0, 2)
+                .toUpperCase()
+            );
+          }}
         />
 
         <Input

@@ -1,27 +1,40 @@
+import { Pool } from "pg";
+import "dotenv/config";
 
-import pg from "pg";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const { Pool } = pg;
-
-const db = new Pool({
+const pool = new Pool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
+  port: Number(process.env.DB_PORT || 5432),
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
 
-db.query("SELECT NOW()")
-  .then((resultado) => {
+pool
+  .connect()
+  .then((client) => {
     console.log("✅ PostgreSQL conectado!");
-    console.log("Hora do banco:", resultado.rows[0]);
+    client.release();
   })
   .catch((erro) => {
-    console.error("❌ Erro ao conectar no PostgreSQL:");
-    console.error(erro);
+    console.error(
+      "❌ Erro ao conectar ao PostgreSQL:",
+      erro
+    );
   });
 
-export default db;
+pool
+  .query("SELECT NOW()")
+  .then((resultado) => {
+    console.log(
+      "Hora do banco:",
+      resultado.rows[0]
+    );
+  })
+  .catch((erro) => {
+    console.error(
+      "❌ Erro ao consultar PostgreSQL:",
+      erro
+    );
+  });
+
+export default pool;

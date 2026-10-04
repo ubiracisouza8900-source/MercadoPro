@@ -1,8 +1,4 @@
-import {
-  VendaModel,
-  ItemVendaInput,
-} from "../models/Venda";
-
+import { VendaModel, ItemVendaInput } from "../models/Venda";
 import { CaixaModel } from "../models/Caixa";
 import { ErroHttp } from "../middlewares/errorHandler";
 
@@ -11,7 +7,8 @@ export const VendaService = {
     clienteId: number | null,
     usuarioId: number,
     formaPagamento: string,
-    itens: ItemVendaInput[]
+    itens: ItemVendaInput[],
+    vencimento?: string
   ) {
     if (!itens || itens.length === 0) {
       throw new ErroHttp(
@@ -25,6 +22,7 @@ export const VendaService = {
       "pix",
       "credito",
       "debito",
+      "fiado",
     ];
 
     if (!formasPagamento.includes(formaPagamento)) {
@@ -32,6 +30,22 @@ export const VendaService = {
         "Forma de pagamento inválida.",
         400
       );
+    }
+
+    if (formaPagamento === "fiado") {
+      if (!clienteId) {
+        throw new ErroHttp(
+          "Para vender fiado, é necessário selecionar um cliente.",
+          400
+        );
+      }
+
+      if (!vencimento) {
+        throw new ErroHttp(
+          "A data de vencimento é obrigatória para vendas fiado.",
+          400
+        );
+      }
     }
 
     const caixa = await CaixaModel.atual();
@@ -48,7 +62,8 @@ export const VendaService = {
       usuarioId,
       caixa.caixa_id,
       formaPagamento,
-      itens
+      itens,
+      vencimento
     );
   },
 

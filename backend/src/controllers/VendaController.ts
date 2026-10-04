@@ -14,6 +14,7 @@ export const VendaController = {
       clienteId,
       formaPagamento,
       itens,
+      vencimento,
     } = req.body;
 
     const usuarioId = req.usuario?.id;
@@ -28,7 +29,8 @@ export const VendaController = {
       clienteId ?? null,
       Number(usuarioId),
       formaPagamento,
-      itens
+      itens,
+      vencimento
     );
 
     return res.status(201).json(venda);

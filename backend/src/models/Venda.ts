@@ -1,9 +1,5 @@
 import db from "../database/DB";
 
-import {
-  MovimentacaoCaixaModel,
-} from "./MovimentacaoCaixa";
-
 export interface ItemVendaInput {
   produtoId: number;
   quantidade: number;
@@ -16,7 +12,8 @@ export const VendaModel = {
     usuarioId: number,
     caixaId: number,
     formaPagamento: string,
-    itens: ItemVendaInput[]
+    itens: ItemVendaInput[],
+    vencimento?: string
   ) {
     const client = await db.connect();
 
@@ -136,63 +133,118 @@ export const VendaModel = {
         );
       }
 
-      await client.query(
-        `
-        INSERT INTO mercado_pro.pagamentos_venda (
-          venda_id,
-          forma_pagamento,
-          valor
-        )
-        VALUES ($1, $2, $3)
-        `,
-        [
-          vendaCriada.venda_id,
-          formaPagamento,
-          total,
-        ]
-      );
+      /*
+       * VENDA FIADO
+       *
+       * Não é um pagamento recebido.
+       * Por isso não entra como recebimento no caixa.
+       * Apenas cria a conta a receber vinculada
+       * ao cliente e à venda.
+       */
+      if (formaPagamento === "fiado") {
+        if (!clienteId) {
+          throw new Error(
+            "Cliente é obrigatório para venda fiado."
+          );
+        }
 
-      await client.query(
-        `
-        INSERT INTO mercado_pro.movimentacoes_caixa (
-          caixa_id,
-          usuario_id,
-          tipo,
-          descricao,
-          valor,
-          forma_pagamento
-        )
-        VALUES ($1, $2, $3, $4, $5, $6)
-        `,
-        [
-          caixaId,
-          usuarioId,
-          "venda",
-          `Venda #${vendaCriada.venda_id}`,
-          total,
-          formaPagamento,
-        ]
-      );
+        if (!vencimento) {
+          throw new Error(
+            "Data de vencimento é obrigatória para venda fiado."
+          );
+        }
 
-      await client.query(
-        `
-        UPDATE mercado_pro.caixa
-        SET valor_esperado =
-          COALESCE(valor_esperado, saldo_inicial)
-          +
-          CASE
-            WHEN $1 = 'dinheiro' THEN $2
-            ELSE 0
-          END
-        WHERE caixa_id = $3
-          AND status = 'aberto'
-        `,
-        [
-          formaPagamento,
-          total,
-          caixaId,
-        ]
-      );
+        await client.query(
+          `
+          INSERT INTO mercado_pro.contas_receber (
+            cliente_id,
+            venda_id,
+            descricao,
+            valor,
+            vencimento
+          )
+          VALUES ($1, $2, $3, $4, $5)
+          `,
+          [
+            clienteId,
+            vendaCriada.venda_id,
+            `Venda #${vendaCriada.venda_id}`,
+            total,
+            vencimento,
+          ]
+        );
+      } else {
+        /*
+         * PAGAMENTO NORMAL
+         *
+         * Dinheiro, PIX, crédito e débito
+         * são registrados como pagamento da venda.
+         */
+        await client.query(
+          `
+          INSERT INTO mercado_pro.pagamentos_venda (
+            venda_id,
+            forma_pagamento,
+            valor
+          )
+          VALUES ($1, $2, $3)
+          `,
+          [
+            vendaCriada.venda_id,
+            formaPagamento,
+            total,
+          ]
+        );
+
+        /*
+         * Registra a movimentação da venda no caixa.
+         */
+        await client.query(
+          `
+          INSERT INTO mercado_pro.movimentacoes_caixa (
+            caixa_id,
+            usuario_id,
+            tipo,
+            descricao,
+            valor,
+            forma_pagamento
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+          `,
+          [
+            caixaId,
+            usuarioId,
+            "venda",
+            `Venda #${vendaCriada.venda_id}`,
+            total,
+            formaPagamento,
+          ]
+        );
+
+        /*
+         * Somente dinheiro aumenta o valor físico
+         * esperado no caixa.
+         */
+        await client.query(
+          `
+          UPDATE mercado_pro.caixa
+          SET valor_esperado =
+            COALESCE(valor_esperado, saldo_inicial)
+            +
+            CASE
+              WHEN $1 = 'dinheiro' THEN $2
+              ELSE 0
+            END
+          WHERE caixa_id = $3
+            AND status = 'aberto'
+          `,
+          [
+            formaPagamento,
+            total,
+            caixaId,
+          ]
+        );
+      }
 
       await client.query("COMMIT");
 

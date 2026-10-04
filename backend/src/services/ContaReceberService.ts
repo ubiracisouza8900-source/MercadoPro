@@ -2,10 +2,53 @@ import { ContaReceberModel } from "../models/ContaReceber";
 import { ErroHttp } from "../middlewares/errorHandler";
 
 export const ContaReceberService = {
-  listar: () => ContaReceberModel.listar(),
-  criar(clienteId: number, valor: number, vencimento: string) {
-    if (!clienteId || !valor || !vencimento) throw new ErroHttp("Cliente, valor e vencimento são obrigatórios.");
-    return { id: ContaReceberModel.criar(clienteId, valor, vencimento) };
+  async listar() {
+    return ContaReceberModel.listar();
   },
-  receber: (id: number) => ContaReceberModel.receber(id),
+
+  async criar(
+    clienteId: number,
+    valor: number,
+    vencimento: string,
+    vendaId?: number
+  ) {
+    if (!clienteId) {
+      throw new ErroHttp(
+        "O cliente é obrigatório.",
+        400
+      );
+    }
+
+    if (!valor || valor <= 0) {
+      throw new ErroHttp(
+        "O valor deve ser maior que zero.",
+        400
+      );
+    }
+
+    if (!vencimento) {
+      throw new ErroHttp(
+        "A data de vencimento é obrigatória.",
+        400
+      );
+    }
+
+    return ContaReceberModel.criar(
+      clienteId,
+      valor,
+      vencimento,
+      vendaId
+    );
+  },
+
+  async receber(id: number) {
+    if (!id || id <= 0) {
+      throw new ErroHttp(
+        "ID da conta a receber inválido.",
+        400
+      );
+    }
+
+    return ContaReceberModel.receber(id);
+  },
 };
