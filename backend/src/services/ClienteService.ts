@@ -1,4 +1,8 @@
-import { ClienteModel, Cliente } from "../models/Cliente";
+import {
+  ClienteModel,
+  Cliente,
+} from "../models/Cliente";
+
 import { ErroHttp } from "../middlewares/errorHandler";
 
 export const ClienteService = {
@@ -6,9 +10,13 @@ export const ClienteService = {
     return await ClienteModel.listar();
   },
 
-  async criar(d: Partial<Cliente>): Promise<Cliente> {
-    if (!d.nome) {
-      throw new ErroHttp("Nome é obrigatório.");
+  async criar(
+    d: Partial<Cliente>
+  ): Promise<Cliente> {
+    if (!d.nome?.trim()) {
+      throw new ErroHttp(
+        "Nome é obrigatório."
+      );
     }
 
     return await ClienteModel.criar(d);
@@ -18,14 +26,18 @@ export const ClienteService = {
     id: number,
     d: Partial<Cliente>
   ): Promise<void> {
-    if (!d.nome) {
-      throw new ErroHttp("Nome é obrigatório.");
+    if (!d.nome?.trim()) {
+      throw new ErroHttp(
+        "Nome é obrigatório."
+      );
     }
 
     await ClienteModel.atualizar(id, d);
   },
 
-  async remover(id: number): Promise<void> {
+  async remover(
+    id: number
+  ): Promise<void> {
     await ClienteModel.remover(id);
   },
 };

@@ -3,6 +3,7 @@ import {
   ItemVendaInput,
 } from "../models/Venda";
 
+import { CaixaModel } from "../models/Caixa";
 import { ErroHttp } from "../middlewares/errorHandler";
 
 export const VendaService = {
@@ -33,15 +34,29 @@ export const VendaService = {
       );
     }
 
+    const caixa = await CaixaModel.atual();
+
+    if (!caixa) {
+      throw new ErroHttp(
+        "Não é possível realizar a venda. O caixa está fechado.",
+        400
+      );
+    }
+
     return VendaModel.criar(
       clienteId ?? null,
       usuarioId,
+      caixa.caixa_id,
       formaPagamento,
       itens
     );
   },
 
-  listar: () => VendaModel.listar(),
+  async listar() {
+    return VendaModel.listar();
+  },
 
-  totalGeral: () => VendaModel.totalGeral(),
+  async totalGeral() {
+    return VendaModel.totalGeral();
+  },
 };

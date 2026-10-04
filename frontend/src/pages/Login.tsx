@@ -12,8 +12,21 @@ interface ErroApi {
 }
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState(
+    () => localStorage.getItem("mercadopro_email") || ""
+  );
+
+  const [senha, setSenha] = useState(
+    () => localStorage.getItem("mercadopro_senha") || ""
+  );
+
+  const [lembrarLogin, setLembrarLogin] = useState(
+    () =>
+      localStorage.getItem(
+        "mercadopro_lembrar_login"
+      ) === "true"
+  );
+
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
@@ -35,10 +48,13 @@ const Login: React.FC = () => {
         senha,
       });
 
-      const token: string | undefined = resposta.data?.token;
+      const token: string | undefined =
+        resposta.data?.token;
 
       if (!token) {
-        setErro("O servidor não retornou o token de acesso.");
+        setErro(
+          "O servidor não retornou o token de acesso."
+        );
         return;
       }
 
@@ -47,11 +63,45 @@ const Login: React.FC = () => {
         token
       );
 
-      console.log("✅ Login realizado com sucesso.");
+      if (lembrarLogin) {
+        localStorage.setItem(
+          "mercadopro_email",
+          email.trim()
+        );
+
+        localStorage.setItem(
+          "mercadopro_senha",
+          senha
+        );
+
+        localStorage.setItem(
+          "mercadopro_lembrar_login",
+          "true"
+        );
+      } else {
+        localStorage.removeItem(
+          "mercadopro_email"
+        );
+
+        localStorage.removeItem(
+          "mercadopro_senha"
+        );
+
+        localStorage.removeItem(
+          "mercadopro_lembrar_login"
+        );
+      }
+
+      console.log(
+        "✅ Login realizado com sucesso."
+      );
 
       navigate("/dashboard");
     } catch (error: unknown) {
-      console.error("❌ Erro no login:", error);
+      console.error(
+        "❌ Erro no login:",
+        error
+      );
 
       if (axios.isAxiosError<ErroApi>(error)) {
         const mensagem =
@@ -61,7 +111,9 @@ const Login: React.FC = () => {
 
         setErro(mensagem);
       } else {
-        setErro("Ocorreu um erro ao tentar fazer login.");
+        setErro(
+          "Ocorreu um erro ao tentar fazer login."
+        );
       }
     } finally {
       setCarregando(false);
@@ -92,8 +144,34 @@ const Login: React.FC = () => {
           erro={erro}
         />
 
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "12px",
+            marginBottom: "18px",
+            cursor: "pointer",
+            fontSize: "14px",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={lembrarLogin}
+            onChange={(e) =>
+              setLembrarLogin(e.target.checked)
+            }
+          />
+
+          <span>Lembrar login</span>
+        </label>
+
         <Botao
-          texto={carregando ? "Entrando..." : "Entrar"}
+          texto={
+            carregando
+              ? "Entrando..."
+              : "Entrar"
+          }
           onClick={handleLogin}
           fullWidth
         />

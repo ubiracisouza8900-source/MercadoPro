@@ -32,6 +32,12 @@ const Compras: React.FC = () => {
   const [mostrarFormulario, setMostrarFormulario] =
     useState(false);
 
+  const [modoEdicao, setModoEdicao] =
+    useState(false);
+
+  const [compraEditando, setCompraEditando] =
+    useState<number | null>(null);
+
   const [busca, setBusca] = useState("");
 
   const [fornecedorId, setFornecedorId] =
@@ -97,10 +103,61 @@ const Compras: React.FC = () => {
     setDataCompra("");
     setDataVencimento("");
     setBoleto(null);
+    setModoEdicao(false);
+    setCompraEditando(null);
   };
 
   const abrirNovaCompra = () => {
     limparFormulario();
+    setMostrarFormulario(true);
+  };
+
+  const abrirEdicao = (
+    compra: Compra
+  ) => {
+    setModoEdicao(true);
+    setCompraEditando(
+      compra.compra_id
+    );
+
+    setFornecedorId(
+      String(compra.fornecedor_id)
+    );
+
+    const fornecedor =
+      fornecedores.find(
+        (item) =>
+          item.fornecedor_id ===
+          compra.fornecedor_id
+      );
+
+    setFornecedorSelecionado(
+      fornecedor ?? null
+    );
+
+    setValor(
+      String(compra.total)
+    );
+
+    setDataCompra(
+      compra.data_compra
+        ? compra.data_compra.substring(
+            0,
+            10
+          )
+        : ""
+    );
+
+    setDataVencimento(
+      compra.data_vencimento
+        ? compra.data_vencimento.substring(
+            0,
+            10
+          )
+        : ""
+    );
+
+    setBoleto(null);
     setMostrarFormulario(true);
   };
 
@@ -115,33 +172,47 @@ const Compras: React.FC = () => {
     evento.preventDefault();
 
     if (!fornecedorId) {
-      alert("Selecione um fornecedor.");
+      alert(
+        "Selecione um fornecedor."
+      );
       return;
     }
 
     if (!valor) {
-      alert("Informe o valor da compra.");
+      alert(
+        "Informe o valor da compra."
+      );
       return;
     }
 
     if (!dataCompra) {
-      alert("Informe a data da compra.");
+      alert(
+        "Informe a data da compra."
+      );
       return;
     }
 
     if (!dataVencimento) {
-      alert("Informe a data de vencimento.");
-      return;
-    }
-
-    if (!boleto) {
-      alert("Selecione o boleto em PDF.");
+      alert(
+        "Informe a data de vencimento."
+      );
       return;
     }
 
     if (
+      !modoEdicao &&
+      !boleto
+    ) {
+      alert(
+        "Selecione o boleto em PDF."
+      );
+      return;
+    }
+
+    if (
+      boleto &&
       boleto.type !==
-      "application/pdf"
+        "application/pdf"
     ) {
       alert(
         "O boleto precisa estar no formato PDF."
@@ -173,19 +244,35 @@ const Compras: React.FC = () => {
         dataVencimento
       );
 
-      formulario.append(
-        "boleto",
-        boleto
-      );
+      if (boleto) {
+        formulario.append(
+          "boleto",
+          boleto
+        );
+      }
 
-      await api.post(
-        "/compras",
-        formulario
-      );
+      if (
+        modoEdicao &&
+        compraEditando
+      ) {
+        await api.put(
+          `/compras/${compraEditando}`,
+          formulario
+        );
 
-      alert(
-        "Compra cadastrada com sucesso!"
-      );
+        alert(
+          "Compra atualizada com sucesso!"
+        );
+      } else {
+        await api.post(
+          "/compras",
+          formulario
+        );
+
+        alert(
+          "Compra cadastrada com sucesso!"
+        );
+      }
 
       limparFormulario();
       setMostrarFormulario(false);
@@ -198,7 +285,90 @@ const Compras: React.FC = () => {
       );
 
       alert(
-        "Não foi possível cadastrar a compra."
+        modoEdicao
+          ? "Não foi possível atualizar a compra."
+          : "Não foi possível cadastrar a compra."
+      );
+    }
+  };
+
+  const excluirCompra = async (
+    compraId: number
+  ) => {
+    const confirmar =
+      window.confirm(
+        "Tem certeza que deseja excluir esta compra?"
+      );
+
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      await api.delete(
+        `/compras/${compraId}`
+      );
+
+      alert(
+        "Compra excluída com sucesso!"
+      );
+
+      await carregarDados();
+    } catch (erro) {
+      console.error(
+        "Erro ao excluir compra:",
+        erro
+      );
+
+      alert(
+        "Não foi possível excluir a compra."
+      );
+    }
+  };
+
+  const visualizarBoleto = async (
+    compraId: number
+  ) => {
+    try {
+      const resposta =
+        await api.get(
+          `/compras/${compraId}/boleto`,
+          {
+            responseType: "blob",
+          }
+        );
+
+      const arquivo =
+        new Blob(
+          [resposta.data],
+          {
+            type: "application/pdf",
+          }
+        );
+
+      const url =
+        window.URL.createObjectURL(
+          arquivo
+        );
+
+      window.open(
+        url,
+        "_blank"
+      );
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(
+          url
+        );
+      }, 60000);
+    } catch (erro) {
+      console.error(
+        "Erro ao visualizar boleto:",
+        erro
+      );
+
+      alert(
+        "Não foi possível abrir o PDF."
       );
     }
   };
@@ -241,7 +411,9 @@ const Compras: React.FC = () => {
       chave: "data_compra",
       titulo: "Data da Compra",
       render: (valor) =>
-        new Date(valor).toLocaleDateString(
+        new Date(
+          valor
+        ).toLocaleDateString(
           "pt-BR"
         ),
     },
@@ -251,28 +423,63 @@ const Compras: React.FC = () => {
       render: (valor) =>
         valor
           ? new Date(
-            valor
-          ).toLocaleDateString(
-            "pt-BR"
-          )
+              valor
+            ).toLocaleDateString(
+              "pt-BR"
+            )
           : "-",
     },
     {
       chave: "boleto_arquivo",
       titulo: "Boleto",
-      render: (valor) =>
+      render: (valor, compra) =>
         valor ? (
-          <span
-            style={{
-              color: "#2563eb",
-              fontWeight: 600,
-            }}
+          <button
+            type="button"
+            onClick={() =>
+              visualizarBoleto(
+                compra.compra_id
+              )
+            }
           >
-            PDF salvo
-          </span>
+            📄 Visualizar PDF
+          </button>
         ) : (
           "-"
         ),
+    },
+    {
+      chave: "compra_id",
+      titulo: "Ações",
+      render: (_valor, compra) => (
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() =>
+              abrirEdicao(compra)
+            }
+          >
+            ✏️ Editar
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              excluirCompra(
+                compra.compra_id
+              )
+            }
+          >
+            🗑️ Excluir
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -295,7 +502,9 @@ const Compras: React.FC = () => {
 
             <Botao
               texto="Nova Compra"
-              onClick={abrirNovaCompra}
+              onClick={
+                abrirNovaCompra
+              }
             />
           </div>
 
@@ -317,7 +526,8 @@ const Compras: React.FC = () => {
                 width: "100%",
                 maxWidth: 500,
                 padding: 10,
-                border: "1px solid #ccc",
+                border:
+                  "1px solid #ccc",
                 borderRadius: 6,
               }}
             />
@@ -351,7 +561,11 @@ const Compras: React.FC = () => {
               marginBottom: 24,
             }}
           >
-            <h2>Nova Compra</h2>
+            <h2>
+              {modoEdicao
+                ? "Editar Compra"
+                : "Nova Compra"}
+            </h2>
 
             <Botao
               texto="Cancelar"
@@ -369,7 +583,9 @@ const Compras: React.FC = () => {
             }}
           >
             <div>
-              <label>Fornecedor</label>
+              <label>
+                Fornecedor
+              </label>
 
               <select
                 value={fornecedorId}
@@ -422,13 +638,16 @@ const Compras: React.FC = () => {
                   width: "100%",
                   padding: 10,
                   marginTop: 6,
-                  background: "#f3f4f6",
+                  background:
+                    "#f3f4f6",
                 }}
               />
             </div>
 
             <div>
-              <label>Telefone</label>
+              <label>
+                Telefone
+              </label>
 
               <input
                 type="text"
@@ -441,13 +660,16 @@ const Compras: React.FC = () => {
                   width: "100%",
                   padding: 10,
                   marginTop: 6,
-                  background: "#f3f4f6",
+                  background:
+                    "#f3f4f6",
                 }}
               />
             </div>
 
             <div>
-              <label>E-mail</label>
+              <label>
+                E-mail
+              </label>
 
               <input
                 type="text"
@@ -460,13 +682,16 @@ const Compras: React.FC = () => {
                   width: "100%",
                   padding: 10,
                   marginTop: 6,
-                  background: "#f3f4f6",
+                  background:
+                    "#f3f4f6",
                 }}
               />
             </div>
 
             <div>
-              <label>Endereço</label>
+              <label>
+                Endereço
+              </label>
 
               <input
                 type="text"
@@ -479,7 +704,8 @@ const Compras: React.FC = () => {
                   width: "100%",
                   padding: 10,
                   marginTop: 6,
-                  background: "#f3f4f6",
+                  background:
+                    "#f3f4f6",
                 }}
               />
             </div>
@@ -501,7 +727,8 @@ const Compras: React.FC = () => {
                   width: "100%",
                   padding: 10,
                   marginTop: 6,
-                  background: "#f3f4f6",
+                  background:
+                    "#f3f4f6",
                 }}
               />
             </div>
@@ -558,7 +785,9 @@ const Compras: React.FC = () => {
 
               <input
                 type="date"
-                value={dataVencimento}
+                value={
+                  dataVencimento
+                }
                 onChange={(evento) =>
                   setDataVencimento(
                     evento.target.value
@@ -574,7 +803,9 @@ const Compras: React.FC = () => {
 
             <div>
               <label>
-                Boleto em PDF
+                {modoEdicao
+                  ? "Novo boleto em PDF (opcional)"
+                  : "Boleto em PDF"}
               </label>
 
               <input
@@ -582,7 +813,8 @@ const Compras: React.FC = () => {
                 accept="application/pdf,.pdf"
                 onChange={(evento) => {
                   const arquivo =
-                    evento.target.files?.[0] ??
+                    evento.target
+                      .files?.[0] ??
                     null;
 
                   setBoleto(arquivo);
@@ -592,6 +824,21 @@ const Compras: React.FC = () => {
                   marginTop: 10,
                 }}
               />
+
+              {modoEdicao && (
+                <small
+                  style={{
+                    display:
+                      "block",
+                    marginTop: 8,
+                    color: "#666",
+                  }}
+                >
+                  Se não selecionar
+                  outro PDF, o boleto
+                  atual será mantido.
+                </small>
+              )}
             </div>
           </div>
 
@@ -603,7 +850,9 @@ const Compras: React.FC = () => {
             }}
           >
             <button type="submit">
-              Salvar Compra
+              {modoEdicao
+                ? "Salvar Alterações"
+                : "Salvar Compra"}
             </button>
 
             <Botao

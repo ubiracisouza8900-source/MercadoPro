@@ -4,10 +4,12 @@ export interface Cliente {
   documento?: string;
   telefone?: string;
   email?: string;
+  cep?: string;
   endereco?: string;
   nr?: number;
   bairro?: string;
-  valor_a_pagar: number;
+  cidade?: string;
+  uf?: string;
   ativo: boolean;
   criado_em?: string;
 }

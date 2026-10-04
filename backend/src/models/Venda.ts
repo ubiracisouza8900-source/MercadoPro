@@ -1,5 +1,9 @@
 import db from "../database/DB";
 
+import {
+  MovimentacaoCaixaModel,
+} from "./MovimentacaoCaixa";
+
 export interface ItemVendaInput {
   produtoId: number;
   quantidade: number;
@@ -10,6 +14,7 @@ export const VendaModel = {
   async criar(
     clienteId: number | null,
     usuarioId: number,
+    caixaId: number,
     formaPagamento: string,
     itens: ItemVendaInput[]
   ) {
@@ -68,14 +73,16 @@ export const VendaModel = {
         INSERT INTO mercado_pro.vendas (
           cliente_id,
           usuario_id,
+          caixa_id,
           total,
           forma_pagamento
         )
-        VALUES ($1, $2, $3, $4)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING
           venda_id,
           cliente_id,
           usuario_id,
+          caixa_id,
           total,
           forma_pagamento,
           data_venda
@@ -83,6 +90,7 @@ export const VendaModel = {
         [
           clienteId,
           usuarioId,
+          caixaId,
           total,
           formaPagamento,
         ]
@@ -128,12 +136,71 @@ export const VendaModel = {
         );
       }
 
+      await client.query(
+        `
+        INSERT INTO mercado_pro.pagamentos_venda (
+          venda_id,
+          forma_pagamento,
+          valor
+        )
+        VALUES ($1, $2, $3)
+        `,
+        [
+          vendaCriada.venda_id,
+          formaPagamento,
+          total,
+        ]
+      );
+
+      await client.query(
+        `
+        INSERT INTO mercado_pro.movimentacoes_caixa (
+          caixa_id,
+          usuario_id,
+          tipo,
+          descricao,
+          valor,
+          forma_pagamento
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        `,
+        [
+          caixaId,
+          usuarioId,
+          "venda",
+          `Venda #${vendaCriada.venda_id}`,
+          total,
+          formaPagamento,
+        ]
+      );
+
+      await client.query(
+        `
+        UPDATE mercado_pro.caixa
+        SET valor_esperado =
+          COALESCE(valor_esperado, saldo_inicial)
+          +
+          CASE
+            WHEN $1 = 'dinheiro' THEN $2
+            ELSE 0
+          END
+        WHERE caixa_id = $3
+          AND status = 'aberto'
+        `,
+        [
+          formaPagamento,
+          total,
+          caixaId,
+        ]
+      );
+
       await client.query("COMMIT");
 
       return {
         id: vendaCriada.venda_id,
         clienteId: vendaCriada.cliente_id,
         usuarioId: vendaCriada.usuario_id,
+        caixaId: vendaCriada.caixa_id,
         total: Number(vendaCriada.total),
         formaPagamento:
           vendaCriada.forma_pagamento,
@@ -153,6 +220,7 @@ export const VendaModel = {
         venda_id AS "id",
         cliente_id AS "clienteId",
         usuario_id AS "usuarioId",
+        caixa_id AS "caixaId",
         total,
         forma_pagamento AS "formaPagamento",
         data_venda AS "dataVenda"

@@ -1,10 +1,5 @@
 import axios from "axios";
 
-/**
- * Instância única do Axios usada em todas as páginas
- * para comunicação com o backend.
- */
-
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
@@ -15,11 +10,8 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem("mercadopro_token");
 
   if (token) {
-    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  console.log("➡️ API:", config.method?.toUpperCase(), config.url);
 
   return config;
 });
@@ -36,11 +28,13 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error("❌ ERRO API");
-
     console.error("URL:", error.config?.url);
     console.error("Método:", error.config?.method);
     console.error("Status:", error.response?.status);
-    console.error("Resposta:", error.response?.data);
+    console.error(
+      "Resposta:",
+      error.response?.data
+    );
 
     return Promise.reject(error);
   }

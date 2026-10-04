@@ -1,19 +1,24 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { VendaService } from "../services/VendaService";
+import { RequestAutenticado } from "../middlewares/authMiddleware";
 
 export const VendaController = {
-  async listar(_req: Request, res: Response) {
+  async listar(_req: RequestAutenticado, res: Response) {
     const vendas = await VendaService.listar();
 
     return res.json(vendas);
   },
 
-  async criar(req: Request, res: Response) {
-    const { clienteId, formaPagamento, itens } = req.body;
+  async criar(req: RequestAutenticado, res: Response) {
+    const {
+      clienteId,
+      formaPagamento,
+      itens,
+    } = req.body;
 
-    const usuario = (req as any).usuario;
+    const usuarioId = req.usuario?.id;
 
-    if (!usuario?.id) {
+    if (!usuarioId) {
       return res.status(401).json({
         erro: "Usuário não autenticado.",
       });
@@ -21,7 +26,7 @@ export const VendaController = {
 
     const venda = await VendaService.criar(
       clienteId ?? null,
-      Number(usuario.id),
+      Number(usuarioId),
       formaPagamento,
       itens
     );
@@ -29,7 +34,10 @@ export const VendaController = {
     return res.status(201).json(venda);
   },
 
-  async relatorio(_req: Request, res: Response) {
+  async relatorio(
+    _req: RequestAutenticado,
+    res: Response
+  ) {
     const total = await VendaService.totalGeral();
 
     return res.json({ total });

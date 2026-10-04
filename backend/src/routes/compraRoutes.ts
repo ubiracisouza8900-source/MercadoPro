@@ -16,4 +16,20 @@ router.post(
   CompraController.criar
 );
 
+router.put(
+  "/:id",
+  uploadBoleto.single("boleto"),
+  CompraController.atualizar
+);
+
+router.delete(
+  "/:id",
+  CompraController.remover
+);
+
+router.get(
+  "/:id/boleto",
+  CompraController.visualizarBoleto
+);
+
 export default router;
