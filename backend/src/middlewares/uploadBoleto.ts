@@ -30,8 +30,9 @@ const armazenamento = multer.diskStorage({
     file,
     cb
   ) => {
-    const extensao =
-      path.extname(file.originalname);
+    const extensao = path.extname(
+      file.originalname
+    );
 
     const nomeArquivo =
       `boleto_${Date.now()}${extensao}`;
@@ -40,31 +41,29 @@ const armazenamento = multer.diskStorage({
   },
 });
 
-const filtroArquivo =
-  (
-    _req,
-    file,
-    cb
-  ) => {
-    if (
-      file.mimetype !==
-      "application/pdf"
-    ) {
-      cb(
-        new Error(
-          "Apenas arquivos PDF são permitidos."
-        )
-      );
+const filtroArquivo = (
+  _req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  if (file.mimetype !== "application/pdf") {
+    cb(
+      new Error(
+        "Apenas arquivos PDF são permitidos."
+      )
+    );
 
-      return;
-    }
+    return;
+  }
 
-    cb(null, true);
-  };
+  cb(null, true);
+};
 
 export const uploadBoleto = multer({
   storage: armazenamento,
+
   fileFilter: filtroArquivo,
+
   limits: {
     fileSize: 10 * 1024 * 1024,
   },
