@@ -6,6 +6,28 @@ export interface ItemVendaInput {
   precoUnitario: number;
 }
 
+interface ItemVendaBanco {
+  itemVendaId: number | string;
+  produtoId: number | string;
+  produtoNome: string;
+  codigoBarras: string | null;
+  quantidade: number | string;
+  precoUnitario: number | string;
+  subtotal: number | string;
+}
+
+interface VendaBanco {
+  id: number | string;
+  clienteId: number | string | null;
+  usuarioId: number | string;
+  caixaId: number | string | null;
+  total: number | string;
+  formaPagamento: string;
+  dataVenda: Date | string;
+  clienteNome: string | null;
+  vencimento: Date | string | null;
+}
+
 export const VendaModel = {
   async criar(
     clienteId: number | null,
@@ -133,14 +155,6 @@ export const VendaModel = {
         );
       }
 
-      /*
-       * VENDA FIADO
-       *
-       * Não é um pagamento recebido.
-       * Por isso não entra como recebimento no caixa.
-       * Apenas cria a conta a receber vinculada
-       * ao cliente e à venda.
-       */
       if (formaPagamento === "fiado") {
         if (!clienteId) {
           throw new Error(
@@ -174,12 +188,6 @@ export const VendaModel = {
           ]
         );
       } else {
-        /*
-         * PAGAMENTO NORMAL
-         *
-         * Dinheiro, PIX, crédito e débito
-         * são registrados como pagamento da venda.
-         */
         await client.query(
           `
           INSERT INTO mercado_pro.pagamentos_venda (
@@ -196,9 +204,6 @@ export const VendaModel = {
           ]
         );
 
-        /*
-         * Registra a movimentação da venda no caixa.
-         */
         await client.query(
           `
           INSERT INTO mercado_pro.movimentacoes_caixa (
@@ -221,10 +226,6 @@ export const VendaModel = {
           ]
         );
 
-        /*
-         * Somente dinheiro aumenta o valor físico
-         * esperado no caixa.
-         */
         await client.query(
           `
           UPDATE mercado_pro.caixa
@@ -249,14 +250,29 @@ export const VendaModel = {
       await client.query("COMMIT");
 
       return {
-        id: vendaCriada.venda_id,
-        clienteId: vendaCriada.cliente_id,
-        usuarioId: vendaCriada.usuario_id,
-        caixaId: vendaCriada.caixa_id,
-        total: Number(vendaCriada.total),
+        id: Number(vendaCriada.venda_id),
+
+        clienteId:
+          vendaCriada.cliente_id !== null
+            ? Number(vendaCriada.cliente_id)
+            : null,
+
+        usuarioId:
+          Number(vendaCriada.usuario_id),
+
+        caixaId:
+          vendaCriada.caixa_id !== null
+            ? Number(vendaCriada.caixa_id)
+            : null,
+
+        total:
+          Number(vendaCriada.total),
+
         formaPagamento:
-          vendaCriada.forma_pagamento,
-        dataVenda: vendaCriada.data_venda,
+          String(vendaCriada.forma_pagamento),
+
+        dataVenda:
+          vendaCriada.data_venda,
       };
     } catch (erro) {
       await client.query("ROLLBACK");
@@ -264,6 +280,118 @@ export const VendaModel = {
     } finally {
       client.release();
     }
+  },
+
+  async buscarPorId(id: number) {
+    const vendaResultado =
+      await db.query<VendaBanco>(
+        `
+        SELECT
+          v.venda_id AS "id",
+          v.cliente_id AS "clienteId",
+          v.usuario_id AS "usuarioId",
+          v.caixa_id AS "caixaId",
+          v.total,
+          v.forma_pagamento AS "formaPagamento",
+          v.data_venda AS "dataVenda",
+          c.nome AS "clienteNome",
+          r.vencimento AS "vencimento"
+        FROM mercado_pro.vendas v
+        LEFT JOIN mercado_pro.clientes c
+          ON c.cliente_id = v.cliente_id
+        LEFT JOIN mercado_pro.contas_receber r
+          ON r.venda_id = v.venda_id
+        WHERE v.venda_id = $1
+        `,
+        [id]
+      );
+
+    if (vendaResultado.rows.length === 0) {
+      return null;
+    }
+
+    const venda = vendaResultado.rows[0];
+
+    const itensResultado =
+      await db.query<ItemVendaBanco>(
+        `
+        SELECT
+          iv.item_venda_id AS "itemVendaId",
+          iv.produto_id AS "produtoId",
+          p.nome AS "produtoNome",
+          p.codigo_barras AS "codigoBarras",
+          iv.quantidade,
+          iv.preco_unitario AS "precoUnitario",
+          iv.subtotal
+        FROM mercado_pro.itens_venda iv
+        INNER JOIN mercado_pro.produtos p
+          ON p.produto_id = iv.produto_id
+        WHERE iv.venda_id = $1
+        ORDER BY iv.item_venda_id
+        `,
+        [id]
+      );
+
+    const itens: ItemVendaBanco[] =
+      itensResultado.rows;
+
+    return {
+      id:
+        Number(venda.id),
+
+      clienteId:
+        venda.clienteId !== null
+          ? Number(venda.clienteId)
+          : null,
+
+      clienteNome:
+        venda.clienteNome ?? null,
+
+      usuarioId:
+        Number(venda.usuarioId),
+
+      caixaId:
+        venda.caixaId !== null
+          ? Number(venda.caixaId)
+          : null,
+
+      total:
+        Number(venda.total),
+
+      formaPagamento:
+        venda.formaPagamento,
+
+      dataVenda:
+        venda.dataVenda,
+
+      vencimento:
+        venda.vencimento ?? null,
+
+      itens: itens.map((item) => ({
+        itemVendaId:
+          Number(item.itemVendaId),
+
+        produtoId:
+          Number(item.produtoId),
+
+        produtoNome:
+          item.produtoNome,
+
+        codigoBarras:
+          item.codigoBarras !== null
+            ? String(item.codigoBarras)
+            : null,
+
+        quantidade:
+          Number(item.quantidade),
+
+        precoUnitario:
+          Number(item.precoUnitario),
+
+        subtotal:
+          Number(item.subtotal),
+      })),
+    };
   },
 
   async listar() {

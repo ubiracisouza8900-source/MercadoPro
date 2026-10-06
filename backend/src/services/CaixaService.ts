@@ -1,3 +1,4 @@
+
 import { CaixaModel } from "../models/Caixa";
 import { ErroHttp } from "../middlewares/errorHandler";
 
@@ -28,35 +29,70 @@ export const CaixaService = {
     };
   },
 
-  async abrir(usuarioId: number, saldoInicial: number) {
-    const caixaAtual = await CaixaModel.atual();
+  async abrir(
+    usuarioId: number,
+    saldoInicial: number
+  ) {
+    const caixaAtual =
+      await CaixaModel.atual();
 
     if (caixaAtual?.status === "aberto") {
-      throw new ErroHttp("O caixa já está aberto.");
+      throw new ErroHttp(
+        "O caixa já está aberto."
+      );
     }
 
-    if (saldoInicial < 0) {
-      throw new ErroHttp("O saldo inicial não pode ser negativo.");
+    if (
+      !Number.isFinite(saldoInicial) ||
+      saldoInicial < 0
+    ) {
+      throw new ErroHttp(
+        "O saldo inicial deve ser um valor válido e não pode ser negativo."
+      );
     }
 
-    return await CaixaModel.abrir(usuarioId, saldoInicial);
+    return await CaixaModel.abrir(
+      usuarioId,
+      saldoInicial
+    );
   },
 
   async fechar(
     valorEsperado: number,
     valorInformado: number
   ) {
-    const caixaAtual = await CaixaModel.atual();
+    const caixaAtual =
+      await CaixaModel.atual();
 
-    if (!caixaAtual || caixaAtual.status !== "aberto") {
-      throw new ErroHttp("Não há caixa aberto.");
+    if (
+      !caixaAtual ||
+      caixaAtual.status !== "aberto"
+    ) {
+      throw new ErroHttp(
+        "Não há caixa aberto."
+      );
     }
 
-    if (valorEsperado < 0 || valorInformado < 0) {
-      throw new ErroHttp("Os valores do fechamento não podem ser negativos.");
+    if (
+      !Number.isFinite(valorEsperado) ||
+      !Number.isFinite(valorInformado)
+    ) {
+      throw new ErroHttp(
+        "Os valores do fechamento são inválidos."
+      );
     }
 
-    const diferenca = valorInformado - valorEsperado;
+    if (
+      valorEsperado < 0 ||
+      valorInformado < 0
+    ) {
+      throw new ErroHttp(
+        "Os valores do fechamento não podem ser negativos."
+      );
+    }
+
+    const diferenca =
+      valorInformado - valorEsperado;
 
     return await CaixaModel.fechar(
       caixaAtual.caixa_id,

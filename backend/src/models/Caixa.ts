@@ -15,7 +15,7 @@ export interface Caixa {
 
 export const CaixaModel = {
   async atual(): Promise<Caixa | undefined> {
-    const resultado = await db.query(
+    const resultado = await db.query<Caixa>(
       `
       SELECT *
       FROM mercado_pro.caixa
@@ -32,7 +32,7 @@ export const CaixaModel = {
     usuarioId: number,
     saldoInicial: number
   ): Promise<Caixa> {
-    const resultado = await db.query(
+    const resultado = await db.query<Caixa>(
       `
       INSERT INTO mercado_pro.caixa (
         usuario_id,
@@ -65,7 +65,7 @@ export const CaixaModel = {
     valorInformado: number,
     diferenca: number
   ): Promise<Caixa | undefined> {
-    const resultado = await db.query(
+    const resultado = await db.query<Caixa>(
       `
       UPDATE mercado_pro.caixa
       SET

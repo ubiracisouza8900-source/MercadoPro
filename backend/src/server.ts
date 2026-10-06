@@ -113,13 +113,17 @@ app.use(errorHandler);
 AuthService.criarAdminPadrao();
 
 // ===============================
-// SERVIDOR
+// SERVIDOR LOCAL
 // ===============================
 
 const PORT = process.env.PORT || 3333;
 
-app.listen(PORT, () => {
-  console.log(
-    `🚀 MercadoPro backend rodando na porta ${PORT}`
-  );
-});
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => {
+    console.log(
+      `🚀 MercadoPro backend rodando na porta ${PORT}`
+    );
+  });
+}
+
+export default app;

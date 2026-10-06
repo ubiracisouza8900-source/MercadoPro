@@ -6,7 +6,7 @@ export interface ContaPagar {
   descricao: string;
   valor: number;
   vencimento: string;
-  data_emissao?: string;
+  data_emissao?: string | null;
   status: string;
   criado_em?: string;
   atualizado_em?: string;
@@ -135,7 +135,9 @@ export const ContaPagarModel = {
       ...conta,
       valor: Number(conta.valor),
       total_pago: Number(conta.total_pago),
-      saldo_restante: Number(conta.saldo_restante),
+      saldo_restante: Number(
+        conta.saldo_restante
+      ),
     };
   },
 
@@ -353,7 +355,8 @@ export const ContaPagarModel = {
           SELECT
             caixa_id,
             status,
-            valor_esperado
+            valor_esperado,
+            saldo_inicial
           FROM mercado_pro.caixa
           WHERE caixa_id = $1
           FOR UPDATE
@@ -373,6 +376,27 @@ export const ContaPagarModel = {
         ) {
           throw new Error(
             "O caixa informado está fechado."
+          );
+        }
+
+        const valorDisponivel =
+          Number(
+            caixa.rows[0].valor_esperado ??
+              caixa.rows[0].saldo_inicial ??
+              0
+          );
+
+        if (valorDisponivel < 0) {
+          throw new Error(
+            "O caixa possui um saldo inválido. Não é possível realizar pagamento em dinheiro."
+          );
+        }
+
+        if (valor > valorDisponivel) {
+          throw new Error(
+            `Saldo insuficiente no caixa. Disponível: R$ ${valorDisponivel.toFixed(
+              2
+            )}.`
           );
         }
       }

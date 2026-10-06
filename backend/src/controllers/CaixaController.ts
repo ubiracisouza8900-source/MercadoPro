@@ -26,9 +26,22 @@ export const CaixaController = {
       });
     }
 
+    const valorSaldoInicial =
+      saldoInicial === undefined ||
+      saldoInicial === null ||
+      saldoInicial === ""
+        ? 0
+        : Number(saldoInicial);
+
+    if (!Number.isFinite(valorSaldoInicial)) {
+      return res.status(400).json({
+        mensagem: "O saldo inicial informado é inválido.",
+      });
+    }
+
     const caixa = await CaixaService.abrir(
       usuarioId,
-      Number(saldoInicial || 0)
+      valorSaldoInicial
     );
 
     return res.status(201).json(caixa);
@@ -43,9 +56,33 @@ export const CaixaController = {
       valorInformado,
     } = req.body;
 
+    const esperado =
+      valorEsperado === undefined ||
+      valorEsperado === null ||
+      valorEsperado === ""
+        ? 0
+        : Number(valorEsperado);
+
+    const informado =
+      valorInformado === undefined ||
+      valorInformado === null ||
+      valorInformado === ""
+        ? 0
+        : Number(valorInformado);
+
+    if (
+      !Number.isFinite(esperado) ||
+      !Number.isFinite(informado)
+    ) {
+      return res.status(400).json({
+        mensagem:
+          "Os valores do fechamento são inválidos.",
+      });
+    }
+
     const caixa = await CaixaService.fechar(
-      Number(valorEsperado || 0),
-      Number(valorInformado || 0)
+      esperado,
+      informado
     );
 
     return res.json(caixa);

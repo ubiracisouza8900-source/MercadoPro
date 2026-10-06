@@ -18,10 +18,31 @@ export const CompraController = {
     req: RequestAutenticado,
     res: Response
   ) {
+    const usuarioId =
+      req.usuario?.id;
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        erro: "Usuário não autenticado.",
+      });
+    }
+
+    const {
+      fornecedorId,
+      total,
+      dataCompra,
+      dataVencimento,
+      boletoArquivo,
+    } = req.body;
+
     const compra =
       await CompraService.criar(
-        req.body,
-        req.file
+        Number(fornecedorId),
+        Number(usuarioId),
+        Number(total),
+        dataCompra,
+        dataVencimento ?? null,
+        boletoArquivo ?? null
       );
 
     return res.status(201).json(compra);
@@ -34,11 +55,22 @@ export const CompraController = {
     const id =
       Number(req.params.id);
 
+    const {
+      fornecedorId,
+      total,
+      dataCompra,
+      dataVencimento,
+      boletoArquivo,
+    } = req.body;
+
     const compra =
       await CompraService.atualizar(
         id,
-        req.body,
-        req.file
+        Number(fornecedorId),
+        Number(total),
+        dataCompra,
+        dataVencimento ?? null,
+        boletoArquivo ?? null
       );
 
     return res.json(compra);
@@ -54,31 +86,5 @@ export const CompraController = {
     await CompraService.remover(id);
 
     return res.status(204).send();
-  },
-
-  async visualizarBoleto(
-    req: RequestAutenticado,
-    res: Response
-  ) {
-    const id =
-      Number(req.params.id);
-
-    const boleto =
-      await CompraService.visualizarBoleto(
-        id
-      );
-
-    if (!boleto) {
-      return res.status(404).json({
-        erro: "Boleto não encontrado.",
-      });
-    }
-
-    res.setHeader(
-      "Content-Type",
-      "application/pdf"
-    );
-
-    return res.send(boleto);
   },
 };

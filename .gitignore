@@ -28,3 +28,9 @@ dist/
 .env
 .env.local
 *.log
+
+node_modules/
+.env
+.env.*
+!.env.example
+

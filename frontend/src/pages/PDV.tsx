@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 
 import Input from "../components/Input";
@@ -11,8 +12,7 @@ type FormaPagamento =
   | "dinheiro"
   | "pix"
   | "credito"
-  | "debito"
-  | "fiado";
+  | "debito";
 
 interface Produto {
   produtoId: number;
@@ -50,14 +50,6 @@ const PDV: React.FC = () => {
   const [valorRecebido, setValorRecebido] =
     useState("");
 
-  const [vencimento, setVencimento] = useState(() => {
-    const data = new Date();
-
-    data.setDate(data.getDate() + 30);
-
-    return data.toISOString().split("T")[0];
-  });
-
   const [carregando, setCarregando] =
     useState(false);
 
@@ -67,7 +59,6 @@ const PDV: React.FC = () => {
   const [vendaFinalizada, setVendaFinalizada] =
     useState<VendaCriada | null>(null);
 
-  // CLIENTE
   const [clienteBusca, setClienteBusca] =
     useState("");
 
@@ -123,17 +114,11 @@ const PDV: React.FC = () => {
       pix: "PIX",
       credito: "Cartão de crédito",
       debito: "Cartão de débito",
-      fiado: "Fiado / Conta",
     };
 
     return nomes[forma];
   }
 
-  /*
-   * =========================================================
-   * PESQUISA AUTOMÁTICA DE CLIENTE
-   * =========================================================
-   */
   useEffect(() => {
     const busca = clienteBusca.trim();
 
@@ -158,56 +143,14 @@ const PDV: React.FC = () => {
             )}`
           );
 
-          const lista = Array.isArray(
-            resposta.data
-          )
-            ? resposta.data
-            : [];
-
-          console.log(
-            "🔎 Resposta da API de clientes:",
-            lista
-          );
-
-          const clientesFormatados: Cliente[] =
-            lista
-              .map((cliente: any) => {
-                const id = Number(
-                  cliente.clienteId ??
-                    cliente.cliente_id ??
-                    cliente.id
-                );
-
-                return {
-                  clienteId: id,
-                  nome: cliente.nome,
-                  documento:
-                    cliente.documento ??
-                    cliente.cpf ??
-                    cliente.cnpj,
-                  telefone:
-                    cliente.telefone,
-                };
-              })
-              .filter(
-                (cliente: Cliente) =>
-                  Number.isInteger(
-                    cliente.clienteId
-                  ) &&
-                  cliente.clienteId > 0
-              );
-
-          console.log(
-            "👥 Clientes formatados:",
-            clientesFormatados
-          );
-
           setClientes(
-            clientesFormatados
+            Array.isArray(resposta.data)
+              ? resposta.data
+              : []
           );
         } catch (erro) {
           console.error(
-            "❌ Erro ao pesquisar cliente:",
+            "Erro ao pesquisar cliente:",
             erro
           );
 
@@ -227,94 +170,20 @@ const PDV: React.FC = () => {
     clienteSelecionado,
   ]);
 
-  /*
-   * =========================================================
-   * SELECIONAR CLIENTE
-   * =========================================================
-   */
   function selecionarCliente(
     cliente: Cliente
   ) {
-    console.log(
-      "👤 Cliente selecionado:",
-      cliente
-    );
-
-    console.log(
-      "🆔 ID do cliente:",
-      cliente.clienteId
-    );
-
     setClienteSelecionado(cliente);
     setClienteBusca("");
     setClientes([]);
   }
 
-  /*
-   * =========================================================
-   * REMOVER CLIENTE
-   * =========================================================
-   */
   function removerCliente() {
-    if (formaPagamento === "fiado") {
-      setFormaPagamento("dinheiro");
-    }
-
     setClienteSelecionado(null);
     setClienteBusca("");
     setClientes([]);
   }
 
-  /*
-   * =========================================================
-   * FORMA DE PAGAMENTO
-   * =========================================================
-   */
-  function selecionarFormaPagamento(
-    forma: FormaPagamento
-  ) {
-    if (forma === "fiado") {
-      if (!clienteSelecionado) {
-        alert(
-          "Para usar Fiado / Conta, primeiro cadastre e selecione um cliente."
-        );
-
-        return;
-      }
-
-      if (
-        !clienteSelecionado.clienteId ||
-        Number.isNaN(
-          Number(
-            clienteSelecionado.clienteId
-          )
-        )
-      ) {
-        alert(
-          "O cliente selecionado não possui um ID válido."
-        );
-
-        return;
-      }
-
-      setValorRecebido("");
-      setFormaPagamento("fiado");
-
-      return;
-    }
-
-    setFormaPagamento(forma);
-
-    if (forma !== "dinheiro") {
-      setValorRecebido("");
-    }
-  }
-
-  /*
-   * =========================================================
-   * ADICIONAR PRODUTO
-   * =========================================================
-   */
   async function adicionarItem() {
     const codigoLido =
       codigo.trim();
@@ -326,7 +195,6 @@ const PDV: React.FC = () => {
       alert(
         "Digite ou bipe o código de barras."
       );
-
       return;
     }
 
@@ -339,7 +207,6 @@ const PDV: React.FC = () => {
       alert(
         "Informe uma quantidade válida."
       );
-
       return;
     }
 
@@ -360,7 +227,6 @@ const PDV: React.FC = () => {
         alert(
           "Produto não encontrado."
         );
-
         return;
       }
 
@@ -389,7 +255,6 @@ const PDV: React.FC = () => {
         alert(
           `Estoque insuficiente. Disponível: ${produto.quantidadeEstoque}.`
         );
-
         return;
       }
 
@@ -428,7 +293,7 @@ const PDV: React.FC = () => {
       setQuantidade("1");
     } catch (erro) {
       console.error(
-        "❌ Erro ao buscar produto:",
+        "Erro ao buscar produto:",
         erro
       );
 
@@ -438,11 +303,6 @@ const PDV: React.FC = () => {
     }
   }
 
-  /*
-   * =========================================================
-   * ALTERAR QUANTIDADE
-   * =========================================================
-   */
   function alterarQuantidade(
     produtoId: number,
     novaQuantidade: number
@@ -469,11 +329,6 @@ const PDV: React.FC = () => {
     );
   }
 
-  /*
-   * =========================================================
-   * REMOVER ITEM
-   * =========================================================
-   */
   function removerItem(
     produtoId: number
   ) {
@@ -486,11 +341,6 @@ const PDV: React.FC = () => {
     );
   }
 
-  /*
-   * =========================================================
-   * LIMPAR VENDA
-   * =========================================================
-   */
   function limparVenda() {
     if (itens.length === 0) {
       return;
@@ -517,21 +367,8 @@ const PDV: React.FC = () => {
     setClienteSelecionado(null);
     setClienteBusca("");
     setClientes([]);
-
-    const data = new Date();
-
-    data.setDate(data.getDate() + 30);
-
-    setVencimento(
-      data.toISOString().split("T")[0]
-    );
   }
 
-  /*
-   * =========================================================
-   * FECHAR COMPROVANTE
-   * =========================================================
-   */
   function fecharComprovante() {
     setVendaFinalizada(null);
 
@@ -547,86 +384,26 @@ const PDV: React.FC = () => {
     setClienteSelecionado(null);
     setClienteBusca("");
     setClientes([]);
-
-    const data = new Date();
-
-    data.setDate(data.getDate() + 30);
-
-    setVencimento(
-      data.toISOString().split("T")[0]
-    );
   }
 
-  /*
-   * =========================================================
-   * FINALIZAR VENDA
-   * =========================================================
-   */
   async function finalizarVenda() {
     if (itens.length === 0) {
       alert(
         "Adicione pelo menos um produto."
       );
-
       return;
     }
 
-    /*
-     * FIADO
-     */
-    if (formaPagamento === "fiado") {
-      if (!clienteSelecionado) {
-        alert(
-          "Para finalizar uma venda no Fiado / Conta, é obrigatório selecionar um cliente cadastrado."
-        );
-
-        return;
-      }
-
-      if (
-        !clienteSelecionado.clienteId ||
-        Number.isNaN(
-          Number(
-            clienteSelecionado.clienteId
-          )
-        )
-      ) {
-        alert(
-          "O cliente selecionado não possui um ID válido. Selecione o cliente novamente."
-        );
-
-        console.error(
-          "❌ Cliente sem ID válido:",
-          clienteSelecionado
-        );
-
-        return;
-      }
-
-      if (!vencimento) {
-        alert(
-          "Informe a data de vencimento."
-        );
-
-        return;
-      }
-    }
-
-    /*
-     * DINHEIRO
-     */
     if (
       formaPagamento ===
       "dinheiro"
     ) {
       if (
-        valorRecebido.trim() ===
-        ""
+        valorRecebido.trim() === ""
       ) {
         alert(
           "Informe o valor recebido."
         );
-
         return;
       }
 
@@ -640,7 +417,6 @@ const PDV: React.FC = () => {
               valorRecebidoNumero
           )}.`
         );
-
         return;
       }
     }
@@ -648,47 +424,16 @@ const PDV: React.FC = () => {
     try {
       setCarregando(true);
 
-      const clienteId =
-        clienteSelecionado?.clienteId
-          ? Number(
-              clienteSelecionado.clienteId
-            )
-          : null;
-
-      /*
-       * LOG PARA CONFERIR O QUE ESTÁ
-       * SENDO ENVIADO AO BACKEND
-       */
-      console.log(
-        "📤 Enviando venda para o backend:",
-        {
-          clienteId,
-          clienteSelecionado,
-          formaPagamento,
-          vencimento:
-            formaPagamento ===
-            "fiado"
-              ? vencimento
-              : undefined,
-          itens,
-          total,
-        }
-      );
-
       const resposta = await api.post(
         "/vendas",
         {
-          clienteId,
+          clienteId:
+            clienteSelecionado?.clienteId ??
+            null,
 
           itens,
 
           formaPagamento,
-
-          vencimento:
-            formaPagamento ===
-            "fiado"
-              ? vencimento
-              : undefined,
 
           valorRecebido:
             formaPagamento ===
@@ -700,41 +445,24 @@ const PDV: React.FC = () => {
         }
       );
 
-      console.log(
-        "✅ Venda criada:",
-        resposta.data
-      );
-
       const venda: VendaCriada =
         resposta.data;
 
       setVendaFinalizada(venda);
-    } catch (erro: any) {
+    } catch (erro) {
       console.error(
-        "❌ Erro ao finalizar venda:",
+        "Erro ao finalizar venda:",
         erro
       );
 
-      console.error(
-        "❌ Resposta do backend:",
-        erro?.response?.data
-      );
-
       alert(
-        erro?.response?.data?.erro ??
-          erro?.response?.data?.message ??
-          "Não foi possível finalizar a venda."
+        "Não foi possível finalizar a venda."
       );
     } finally {
       setCarregando(false);
     }
   }
 
-  /*
-   * =========================================================
-   * COLUNAS DA TABELA
-   * =========================================================
-   */
   const colunas: ColunaTabela<ItemVenda>[] =
     [
       {
@@ -1242,7 +970,6 @@ const PDV: React.FC = () => {
             Resumo da venda
           </h2>
 
-          {/* CLIENTE */}
           <section
             style={{
               marginBottom: 24,
@@ -1278,19 +1005,6 @@ const PDV: React.FC = () => {
                     clienteSelecionado.nome
                   }
                 </strong>
-
-                <div
-                  style={{
-                    marginTop: 4,
-                    fontSize: 12,
-                    color: "#555",
-                  }}
-                >
-                  ID:{" "}
-                  {
-                    clienteSelecionado.clienteId
-                  }
-                </div>
 
                 {clienteSelecionado.documento && (
                   <div
@@ -1531,10 +1245,6 @@ const PDV: React.FC = () => {
                   "debito",
                   "Débito",
                 ],
-                [
-                  "fiado",
-                  "Fiado / Conta",
-                ],
               ] as [
                 FormaPagamento,
                 string
@@ -1547,11 +1257,20 @@ const PDV: React.FC = () => {
                 <button
                   key={valor}
                   type="button"
-                  onClick={() =>
-                    selecionarFormaPagamento(
+                  onClick={() => {
+                    setFormaPagamento(
                       valor
-                    )
-                  }
+                    );
+
+                    if (
+                      valor !==
+                      "dinheiro"
+                    ) {
+                      setValorRecebido(
+                        ""
+                      );
+                    }
+                  }}
                   style={{
                     padding:
                       "12px 8px",
@@ -1577,62 +1296,6 @@ const PDV: React.FC = () => {
               )
             )}
           </div>
-
-          {formaPagamento ===
-            "fiado" && (
-            <div
-              style={{
-                marginTop: 14,
-                padding: 12,
-                borderRadius: 8,
-                background:
-                  "#fff7ed",
-                border:
-                  "1px solid #fed7aa",
-                color: "#9a3412",
-                fontSize: 13,
-              }}
-            >
-              <strong>
-                Venda a prazo
-              </strong>
-
-              <div
-                style={{
-                  marginTop: 5,
-                }}
-              >
-                Cliente:{" "}
-                {
-                  clienteSelecionado?.nome
-                }
-              </div>
-
-              <div
-                style={{
-                  marginTop: 12,
-                }}
-              >
-                <Input
-                  label="Data de vencimento"
-                  valor={vencimento}
-                  aoAlterar={
-                    setVencimento
-                  }
-                  placeholder="AAAA-MM-DD"
-                />
-              </div>
-
-              <div
-                style={{
-                  marginTop: 10,
-                }}
-              >
-                Esta venda será enviada
-                para Contas a Receber.
-              </div>
-            </div>
-          )}
 
           {formaPagamento ===
             "dinheiro" && (
@@ -1725,9 +1388,6 @@ const PDV: React.FC = () => {
               texto={
                 carregando
                   ? "Finalizando..."
-                  : formaPagamento ===
-                    "fiado"
-                  ? "Finalizar venda a prazo"
                   : "Finalizar venda"
               }
               variante="sucesso"
@@ -1739,7 +1399,6 @@ const PDV: React.FC = () => {
         </aside>
       </section>
 
-      {/* COMPROVANTE */}
       {vendaFinalizada && (
         <div
           style={{
@@ -1823,9 +1482,7 @@ const PDV: React.FC = () => {
                     "4px 0",
                 }}
               >
-                <strong>
-                  Data:
-                </strong>{" "}
+                <strong>Data:</strong>{" "}
                 {new Date(
                   vendaFinalizada.dataVenda
                 ).toLocaleString(
@@ -2008,39 +1665,6 @@ const PDV: React.FC = () => {
                   </div>
                 </>
               )}
-
-              {vendaFinalizada.formaPagamento ===
-                "fiado" && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    padding: 10,
-                    borderRadius: 6,
-                    background:
-                      "#fff7ed",
-                    color: "#9a3412",
-                    fontSize: 13,
-                  }}
-                >
-                  <strong>
-                    Venda a prazo
-                  </strong>
-
-                  <br />
-
-                  Vencimento:{" "}
-                  {new Date(
-                    `${vencimento}T00:00:00`
-                  ).toLocaleDateString(
-                    "pt-BR"
-                  )}
-
-                  <br />
-
-                  Esta venda foi enviada
-                  para Contas a Receber.
-                </div>
-              )}
             </div>
 
             <div
@@ -2094,8 +1718,8 @@ const PDV: React.FC = () => {
                 style={{
                   flex: 1,
                   padding: 12,
-                  border: "none",
                   borderRadius: 6,
+                  border: "none",
                   background:
                     "#2563eb",
                   color: "#fff",
@@ -2114,3 +1738,4 @@ const PDV: React.FC = () => {
 };
 
 export default PDV;
+
