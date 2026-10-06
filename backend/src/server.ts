@@ -110,7 +110,12 @@ app.use(errorHandler);
 // ADMIN PADRÃO
 // ===============================
 
-AuthService.criarAdminPadrao();
+AuthService.criarAdminPadrao().catch((erro) => {
+  console.error(
+    "❌ Erro ao criar administrador:",
+    erro
+  );
+});
 
 // ===============================
 // SERVIDOR LOCAL
