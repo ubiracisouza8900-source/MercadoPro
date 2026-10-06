@@ -2,11 +2,13 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const pastaBoletos = path.resolve(
-  process.cwd(),
-  "arquivos",
-  "boletos"
-);
+const pastaBoletos = process.env.VERCEL
+  ? "/tmp/boletos"
+  : path.resolve(
+      process.cwd(),
+      "arquivos",
+      "boletos"
+    );
 
 if (!fs.existsSync(pastaBoletos)) {
   fs.mkdirSync(pastaBoletos, {
@@ -14,57 +16,56 @@ if (!fs.existsSync(pastaBoletos)) {
   });
 }
 
-const armazenamento =
-  multer.diskStorage({
-    destination: (
-      _req,
-      _file,
-      cb
-    ) => {
-      cb(null, pastaBoletos);
-    },
+const armazenamento = multer.diskStorage({
+  destination: (
+    _req,
+    _file,
+    cb
+  ) => {
+    cb(null, pastaBoletos);
+  },
 
-    filename: (
-      _req,
-      file,
-      cb
-    ) => {
-      const extensao =
-        path.extname(file.originalname);
+  filename: (
+    _req,
+    file,
+    cb
+  ) => {
+    const extensao =
+      path.extname(file.originalname);
 
-      const nomeArquivo =
-        `boleto_${Date.now()}${extensao}`;
+    const nomeArquivo =
+      `boleto_${Date.now()}${extensao}`;
 
-      cb(null, nomeArquivo);
-    },
-  });
+    cb(null, nomeArquivo);
+  },
+});
 
-const filtroArquivo: multer.Options["fileFilter"] = (
-  _req,
-  file,
-  cb
-) => {
-  if (
-    file.mimetype !==
-    "application/pdf"
-  ) {
-    cb(
-      new Error(
-        "Apenas arquivos PDF são permitidos."
-      )
-    );
+const filtroArquivo =
+  (
+    _req,
+    file,
+    cb
+  ) => {
+    if (
+      file.mimetype !==
+      "application/pdf"
+    ) {
+      cb(
+        new Error(
+          "Apenas arquivos PDF são permitidos."
+        )
+      );
 
-    return;
-  }
+      return;
+    }
 
-  cb(null, true);
-};
+    cb(null, true);
+  };
 
-export const uploadBoleto =
-  multer({
-    storage: armazenamento,
-    fileFilter: filtroArquivo,
-    limits: {
-      fileSize: 10 * 1024 * 1024,
-    },
-  });
+export const uploadBoleto = multer({
+  storage: armazenamento,
+  fileFilter: filtroArquivo,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+});
