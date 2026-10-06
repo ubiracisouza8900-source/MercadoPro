@@ -50,18 +50,26 @@ export const AuthService = {
   },
 
   async criarAdminPadrao() {
-    const email = "admin@mercadopro.com";
-    const senhaPadrao = "admin123";
+    const email = process.env.ADMIN_EMAIL;
+    const senha = process.env.ADMIN_PASSWORD;
+
+    if (!email || !senha) {
+      console.log(
+        "ℹ️ ADMIN_EMAIL ou ADMIN_PASSWORD não configurados. Criação automática do administrador ignorada."
+      );
+
+      return;
+    }
 
     const adminExistente =
       await UsuarioModel.buscarPorEmail(email);
 
-    const senhaHash = await bcrypt.hash(
-      senhaPadrao,
-      10
-    );
-
     if (!adminExistente) {
+      const senhaHash = await bcrypt.hash(
+        senha,
+        10
+      );
+
       await UsuarioModel.criar(
         "Administrador",
         email,
@@ -70,19 +78,14 @@ export const AuthService = {
       );
 
       console.log(
-        "Usuário padrão criado: admin@mercadopro.com / admin123"
+        "✅ Usuário administrador criado."
       );
 
       return;
     }
 
-    await UsuarioModel.atualizarSenha(
-      adminExistente.id,
-      senhaHash
-    );
-
     console.log(
-      "🔐 Senha do administrador atualizada."
+      "ℹ️ Usuário administrador já existe."
     );
   },
 };
