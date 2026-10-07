@@ -37,6 +37,31 @@ export const VendaModel = {
     itens: ItemVendaInput[],
     vencimento?: string
   ) {
+    const clienteIdNumerico =
+      clienteId !== null ? Number(clienteId) : null;
+
+    const usuarioIdNumerico = Number(usuarioId);
+    const caixaIdNumerico = Number(caixaId);
+
+    if (
+      clienteIdNumerico !== null &&
+      !Number.isInteger(clienteIdNumerico)
+    ) {
+      throw new Error("ID do cliente inválido.");
+    }
+
+    if (!Number.isInteger(usuarioIdNumerico)) {
+      throw new Error("ID do usuário inválido.");
+    }
+
+    if (!Number.isInteger(caixaIdNumerico)) {
+      throw new Error("ID do caixa inválido.");
+    }
+
+    if (!Array.isArray(itens) || itens.length === 0) {
+      throw new Error("A venda precisa ter ao menos um item.");
+    }
+
     const client = await db.connect();
 
     try {
@@ -45,11 +70,22 @@ export const VendaModel = {
       let total = 0;
 
       for (const item of itens) {
-        if (item.quantidade <= 0) {
+        const produtoId = Number(item.produtoId);
+        const quantidade = Number(item.quantidade);
+        const precoUnitario = Number(item.precoUnitario);
+
+        if (!Number.isInteger(produtoId)) {
+          throw new Error("ID do produto inválido.");
+        }
+
+        if (!Number.isFinite(quantidade) || quantidade <= 0) {
           throw new Error("Quantidade inválida.");
         }
 
-        if (item.precoUnitario < 0) {
+        if (
+          !Number.isFinite(precoUnitario) ||
+          precoUnitario < 0
+        ) {
           throw new Error("Preço inválido.");
         }
 
@@ -64,12 +100,12 @@ export const VendaModel = {
             AND ativo = TRUE
           FOR UPDATE
           `,
-          [item.produtoId]
+          [produtoId]
         );
 
         if (produto.rows.length === 0) {
           throw new Error(
-            `Produto ${item.produtoId} não encontrado.`
+            `Produto ${produtoId} não encontrado.`
           );
         }
 
@@ -77,14 +113,23 @@ export const VendaModel = {
           produto.rows[0].quantidade_estoque
         );
 
-        if (item.quantidade > estoqueAtual) {
+        if (!Number.isFinite(estoqueAtual)) {
           throw new Error(
-            `Estoque insuficiente para o produto ${item.produtoId}.`
+            `Estoque inválido para o produto ${produtoId}.`
           );
         }
 
-        total +=
-          item.quantidade * item.precoUnitario;
+        if (quantidade > estoqueAtual) {
+          throw new Error(
+            `Estoque insuficiente para o produto ${produtoId}.`
+          );
+        }
+
+        total += quantidade * precoUnitario;
+      }
+
+      if (!Number.isFinite(total) || total < 0) {
+        throw new Error("Total da venda inválido.");
       }
 
       const venda = await client.query(
@@ -107,19 +152,29 @@ export const VendaModel = {
           data_venda
         `,
         [
-          clienteId,
-          usuarioId,
-          caixaId,
+          clienteIdNumerico,
+          usuarioIdNumerico,
+          caixaIdNumerico,
           total,
-          formaPagamento,
+          String(formaPagamento),
         ]
       );
 
       const vendaCriada = venda.rows[0];
 
+      const vendaId = Number(vendaCriada.venda_id);
+
+      if (!Number.isInteger(vendaId)) {
+        throw new Error("ID da venda inválido.");
+      }
+
       for (const item of itens) {
+        const produtoId = Number(item.produtoId);
+        const quantidade = Number(item.quantidade);
+        const precoUnitario = Number(item.precoUnitario);
+
         const subtotal =
-          item.quantidade * item.precoUnitario;
+          quantidade * precoUnitario;
 
         await client.query(
           `
@@ -133,10 +188,10 @@ export const VendaModel = {
           VALUES ($1, $2, $3, $4, $5)
           `,
           [
-            vendaCriada.venda_id,
-            item.produtoId,
-            item.quantidade,
-            item.precoUnitario,
+            vendaId,
+            produtoId,
+            quantidade,
+            precoUnitario,
             subtotal,
           ]
         );
@@ -149,14 +204,14 @@ export const VendaModel = {
           WHERE produto_id = $2
           `,
           [
-            item.quantidade,
-            item.produtoId,
+            quantidade,
+            produtoId,
           ]
         );
       }
 
       if (formaPagamento === "fiado") {
-        if (!clienteId) {
+        if (clienteIdNumerico === null) {
           throw new Error(
             "Cliente é obrigatório para venda fiado."
           );
@@ -180,9 +235,9 @@ export const VendaModel = {
           VALUES ($1, $2, $3, $4, $5)
           `,
           [
-            clienteId,
-            vendaCriada.venda_id,
-            `Venda #${vendaCriada.venda_id}`,
+            clienteIdNumerico,
+            vendaId,
+            `Venda #${vendaId}`,
             total,
             vencimento,
           ]
@@ -198,8 +253,8 @@ export const VendaModel = {
           VALUES ($1, $2, $3)
           `,
           [
-            vendaCriada.venda_id,
-            formaPagamento,
+            vendaId,
+            String(formaPagamento),
             total,
           ]
         );
@@ -217,12 +272,12 @@ export const VendaModel = {
           VALUES ($1, $2, $3, $4, $5, $6)
           `,
           [
-            caixaId,
-            usuarioId,
+            caixaIdNumerico,
+            usuarioIdNumerico,
             "venda",
-            `Venda #${vendaCriada.venda_id}`,
+            `Venda #${vendaId}`,
             total,
-            formaPagamento,
+            String(formaPagamento),
           ]
         );
 
@@ -240,9 +295,9 @@ export const VendaModel = {
             AND status = 'aberto'
           `,
           [
-            formaPagamento,
+            String(formaPagamento),
             total,
-            caixaId,
+            caixaIdNumerico,
           ]
         );
       }
@@ -250,7 +305,7 @@ export const VendaModel = {
       await client.query("COMMIT");
 
       return {
-        id: Number(vendaCriada.venda_id),
+        id: vendaId,
 
         clienteId:
           vendaCriada.cliente_id !== null
