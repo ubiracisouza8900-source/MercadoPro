@@ -11,7 +11,8 @@ type FormaPagamento =
   | "dinheiro"
   | "pix"
   | "credito"
-  | "debito";
+  | "debito"
+  | "fiado";
 
 interface Produto {
   produtoId: number;
@@ -53,6 +54,9 @@ const PDV: React.FC = () => {
     useState<FormaPagamento>("dinheiro");
 
   const [valorRecebido, setValorRecebido] =
+    useState("");
+
+  const [vencimento, setVencimento] =
     useState("");
 
   const [carregando, setCarregando] =
@@ -118,6 +122,7 @@ const PDV: React.FC = () => {
       pix: "PIX",
       credito: "Cartão de crédito",
       debito: "Cartão de débito",
+      fiado: "Fiado",
     };
 
     return nomes[forma];
@@ -390,6 +395,7 @@ const PDV: React.FC = () => {
     setCodigo("");
     setQuantidade("1");
     setValorRecebido("");
+    setVencimento("");
     setFormaPagamento(
       "dinheiro"
     );
@@ -407,6 +413,7 @@ const PDV: React.FC = () => {
     setCodigo("");
     setQuantidade("1");
     setValorRecebido("");
+    setVencimento("");
     setFormaPagamento(
       "dinheiro"
     );
@@ -447,6 +454,25 @@ const PDV: React.FC = () => {
             total -
               valorRecebidoNumero
           )}.`
+        );
+        return;
+      }
+    }
+
+    if (
+      formaPagamento ===
+      "fiado"
+    ) {
+      if (!clienteSelecionado) {
+        alert(
+          "Para realizar uma venda fiado, selecione um cliente."
+        );
+        return;
+      }
+
+      if (!vencimento) {
+        alert(
+          "Informe a data de vencimento da venda fiado."
         );
         return;
       }
@@ -514,6 +540,12 @@ const PDV: React.FC = () => {
                 : total,
 
             total,
+
+            vencimento:
+              formaPagamento ===
+              "fiado"
+                ? vencimento
+                : undefined,
           }
         );
 
@@ -581,7 +613,8 @@ const PDV: React.FC = () => {
                 )
               }
               disabled={
-                item.quantidade <= 1
+                item.quantidade <=
+                1
               }
               style={{
                 width: 32,
@@ -789,7 +822,9 @@ const PDV: React.FC = () => {
               >
                 <Input
                   label="Quantidade"
-                  valor={quantidade}
+                  valor={
+                    quantidade
+                  }
                   aoAlterar={
                     setQuantidade
                   }
@@ -1049,7 +1084,8 @@ const PDV: React.FC = () => {
               border:
                 "1px solid #ddd",
               borderRadius: 8,
-              background: "#f9fafb",
+              background:
+                "#f9fafb",
             }}
           >
             <h3
@@ -1107,7 +1143,8 @@ const PDV: React.FC = () => {
                       "#dc2626",
                     cursor:
                       "pointer",
-                    fontWeight: 600,
+                    fontWeight:
+                      600,
                     padding: 0,
                   }}
                 >
@@ -1317,6 +1354,10 @@ const PDV: React.FC = () => {
                   "debito",
                   "Débito",
                 ],
+                [
+                  "fiado",
+                  "Fiado",
+                ],
               ] as [
                 FormaPagamento,
                 string
@@ -1339,6 +1380,15 @@ const PDV: React.FC = () => {
                       "dinheiro"
                     ) {
                       setValorRecebido(
+                        ""
+                      );
+                    }
+
+                    if (
+                      valor !==
+                      "fiado"
+                    ) {
+                      setVencimento(
                         ""
                       );
                     }
@@ -1448,6 +1498,73 @@ const PDV: React.FC = () => {
                     </strong>
                   </div>
                 )}
+            </div>
+          )}
+
+          {formaPagamento ===
+            "fiado" && (
+            <div
+              style={{
+                marginTop: 18,
+                padding: 14,
+                borderRadius: 8,
+                border:
+                  "1px solid #fde68a",
+                background:
+                  "#fffbeb",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: 12,
+                  fontSize: 13,
+                  color: "#92400e",
+                }}
+              >
+                A venda será registrada
+                como conta a receber.
+              </div>
+
+              {!clienteSelecionado && (
+                <div
+                  style={{
+                    marginBottom: 12,
+                    padding: 10,
+                    borderRadius: 6,
+                    background:
+                      "#fee2e2",
+                    border:
+                      "1px solid #fecaca",
+                    color:
+                      "#b91c1c",
+                    fontSize: 13,
+                  }}
+                >
+                  Selecione um cliente
+                  para realizar a venda
+                  fiado.
+                </div>
+              )}
+
+              <Input
+                label="Data de vencimento"
+                valor={vencimento}
+                aoAlterar={
+                  setVencimento
+                }
+                placeholder="AAAA-MM-DD"
+              />
+
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: "#666",
+                }}
+              >
+                Informe a data em que
+                o cliente deverá pagar.
+              </div>
             </div>
           )}
 
@@ -1736,6 +1853,32 @@ const PDV: React.FC = () => {
                     </strong>
                   </div>
                 </>
+              )}
+
+              {vendaFinalizada.formaPagamento ===
+                "fiado" && (
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    justifyContent:
+                      "space-between",
+                    marginTop: 6,
+                    fontSize: 14,
+                  }}
+                >
+                  <span>
+                    Vencimento
+                  </span>
+
+                  <strong>
+                    {new Date(
+                      `${vencimento}T00:00:00`
+                    ).toLocaleDateString(
+                      "pt-BR"
+                    )}
+                  </strong>
+                </div>
               )}
             </div>
 

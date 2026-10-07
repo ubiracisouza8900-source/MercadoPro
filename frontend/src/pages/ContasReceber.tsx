@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Tabela, { ColunaTabela } from "../components/Tabela";
 import Botao from "../components/Botao";
@@ -54,6 +54,12 @@ type FormaPagamento =
   | "credito"
   | "debito";
 
+type FiltroSituacao =
+  | "todas"
+  | "abertas"
+  | "vencidas"
+  | "pagas";
+
 const ContasReceber: React.FC = () => {
   const [contas, setContas] = useState<ContaReceber[]>([]);
   const [carregando, setCarregando] = useState(false);
@@ -77,6 +83,11 @@ const ContasReceber: React.FC = () => {
     useState<FormaPagamento>("dinheiro");
 
   const [observacao, setObservacao] = useState("");
+
+  const [filtroSituacao, setFiltroSituacao] =
+    useState<FiltroSituacao>("todas");
+
+  const [busca, setBusca] = useState("");
 
   function obterMensagemErro(
     erro: unknown,
@@ -104,6 +115,10 @@ const ContasReceber: React.FC = () => {
       return null;
     }
 
+    const valorNumerico = Number(
+      conta.valor ?? 0
+    );
+
     return {
       contaReceberId: id,
 
@@ -122,9 +137,13 @@ const ContasReceber: React.FC = () => {
           : null,
 
       descricao:
-        conta.descricao?.trim() || "",
+        conta.descricao?.trim() ||
+        "Conta a receber",
 
-      valor: Number(conta.valor ?? 0),
+      valor:
+        Number.isFinite(valorNumerico)
+          ? valorNumerico
+          : 0,
 
       vencimento:
         conta.vencimento ?? "",
@@ -180,12 +199,13 @@ const ContasReceber: React.FC = () => {
   }
 
 useEffect(() => {
-  async function iniciar(): Promise<void> {
+  const iniciar = async (): Promise<void> => {
     await carregar();
-  }
+  };
 
   void iniciar();
 }, []);
+
   function limparFormulario(): void {
     setClienteId("");
     setVendaId("");
@@ -196,6 +216,7 @@ useEffect(() => {
 
   async function criarConta(): Promise<void> {
     const cliente = Number(clienteId);
+
     const venda = vendaId
       ? Number(vendaId)
       : undefined;
@@ -401,6 +422,14 @@ useEffect(() => {
       `${conta.vencimento}T00:00:00`
     );
 
+    if (
+      Number.isNaN(
+        vencimento.getTime()
+      )
+    ) {
+      return "Aberta";
+    }
+
     if (vencimento < hoje) {
       return "Vencida";
     }
@@ -432,13 +461,106 @@ useEffect(() => {
     );
   }
 
+  function formatarMoeda(
+    valorNumerico: number
+  ): string {
+    return valorNumerico.toLocaleString(
+      "pt-BR",
+      {
+        style: "currency",
+        currency: "BRL",
+      }
+    );
+  }
+
+  const resumo = useMemo(() => {
+    let totalAberto = 0;
+    let totalVencido = 0;
+    let totalPago = 0;
+
+    contas.forEach((conta) => {
+      const status = obterStatus(conta);
+
+      if (status === "Paga") {
+        totalPago += conta.valor;
+      }
+
+      if (status === "Aberta") {
+        totalAberto += conta.valor;
+      }
+
+      if (status === "Vencida") {
+        totalVencido += conta.valor;
+      }
+    });
+
+    return {
+      totalAberto,
+      totalVencido,
+      totalPago,
+      totalGeral:
+        totalAberto +
+        totalVencido +
+        totalPago,
+    };
+  }, [contas]);
+
+  const contasFiltradas = useMemo(() => {
+    const textoBusca =
+      busca.trim().toLowerCase();
+
+    return contas.filter((conta) => {
+      const status = obterStatus(conta);
+
+      const correspondeSituacao =
+        filtroSituacao === "todas" ||
+        (filtroSituacao === "abertas" &&
+          status === "Aberta") ||
+        (filtroSituacao === "vencidas" &&
+          status === "Vencida") ||
+        (filtroSituacao === "pagas" &&
+          status === "Paga");
+
+      if (!correspondeSituacao) {
+        return false;
+      }
+
+      if (!textoBusca) {
+        return true;
+      }
+
+      const cliente =
+        conta.clienteNome.toLowerCase();
+
+      const descricao =
+        conta.descricao.toLowerCase();
+
+      const venda =
+        conta.vendaId != null
+          ? String(conta.vendaId)
+          : "";
+
+      return (
+        cliente.includes(textoBusca) ||
+        descricao.includes(textoBusca) ||
+        venda.includes(textoBusca)
+      );
+    });
+  }, [
+    contas,
+    filtroSituacao,
+    busca,
+  ]);
+
   const colunas: ColunaTabela<ContaReceber>[] =
     [
       {
         chave: "clienteNome",
         titulo: "Cliente",
         render: (valor) =>
-          String(valor || "Não informado"),
+          String(
+            valor || "Não informado"
+          ),
       },
 
       {
@@ -459,21 +581,61 @@ useEffect(() => {
         chave: "valor",
         titulo: "Valor",
         render: (valor) =>
-          `R$ ${Number(valor).toFixed(2)}`,
+          formatarMoeda(
+            Number(valor)
+          ),
       },
 
       {
         chave: "vencimento",
         titulo: "Vencimento",
         render: (valor) =>
-          formatarData(String(valor)),
+          formatarData(
+            String(valor)
+          ),
       },
 
       {
         chave: "recebida",
         titulo: "Situação",
-        render: (_valor, linha) =>
-          obterStatus(linha),
+        render: (_valor, linha) => {
+          const status =
+            obterStatus(linha);
+
+          const estilo: React.CSSProperties =
+            {
+              display: "inline-block",
+              padding: "5px 10px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
+            };
+
+          if (status === "Paga") {
+            estilo.background =
+              "#dcfce7";
+            estilo.color =
+              "#166534";
+          } else if (
+            status === "Vencida"
+          ) {
+            estilo.background =
+              "#fee2e2";
+            estilo.color =
+              "#991b1b";
+          } else {
+            estilo.background =
+              "#fef3c7";
+            estilo.color =
+              "#92400e";
+          }
+
+          return (
+            <span style={estilo}>
+              {status}
+            </span>
+          );
+        },
       },
 
       {
@@ -481,7 +643,14 @@ useEffect(() => {
         titulo: "Ações",
         render: (_valor, linha) =>
           linha.recebida ? (
-            "Recebida"
+            <span
+              style={{
+                color: "#166534",
+                fontWeight: 600,
+              }}
+            >
+              Recebida
+            </span>
           ) : (
             <Botao
               texto="Receber"
@@ -497,27 +666,192 @@ useEffect(() => {
     ];
 
   return (
-    <main style={{ padding: 24 }}>
+    <main
+      style={{
+        padding: 24,
+        maxWidth: 1400,
+        margin: "0 auto",
+      }}
+    >
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent:
+            "space-between",
           alignItems: "center",
           marginBottom: 20,
+          gap: 16,
+          flexWrap: "wrap",
         }}
       >
-        <h2>Contas a Receber</h2>
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              marginBottom: 6,
+            }}
+          >
+            Contas a Receber
+          </h2>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#666",
+            }}
+          >
+            Controle das vendas fiado e
+            valores que os clientes ainda
+            precisam pagar.
+          </p>
+        </div>
 
         <Botao
-          texto="Nova Conta"
+          texto={
+            mostrarFormulario
+              ? "Fechar"
+              : "Nova Conta"
+          }
           variante="primario"
-          onClick={() =>
+          onClick={() => {
             setMostrarFormulario(
               !mostrarFormulario
-            )
-          }
+            );
+
+            if (
+              mostrarFormulario
+            ) {
+              limparFormulario();
+            }
+          }}
         />
       </div>
+
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            padding: 18,
+            background: "#fff",
+          }}
+        >
+          <div
+            style={{
+              color: "#666",
+              fontSize: 14,
+              marginBottom: 8,
+            }}
+          >
+            Total em aberto
+          </div>
+
+          <strong
+            style={{
+              fontSize: 22,
+            }}
+          >
+            {formatarMoeda(
+              resumo.totalAberto
+            )}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            padding: 18,
+            background: "#fff",
+          }}
+        >
+          <div
+            style={{
+              color: "#666",
+              fontSize: 14,
+              marginBottom: 8,
+            }}
+          >
+            Total vencido
+          </div>
+
+          <strong
+            style={{
+              fontSize: 22,
+            }}
+          >
+            {formatarMoeda(
+              resumo.totalVencido
+            )}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            padding: 18,
+            background: "#fff",
+          }}
+        >
+          <div
+            style={{
+              color: "#666",
+              fontSize: 14,
+              marginBottom: 8,
+            }}
+          >
+            Total recebido
+          </div>
+
+          <strong
+            style={{
+              fontSize: 22,
+            }}
+          >
+            {formatarMoeda(
+              resumo.totalPago
+            )}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            padding: 18,
+            background: "#fff",
+          }}
+        >
+          <div
+            style={{
+              color: "#666",
+              fontSize: 14,
+              marginBottom: 8,
+            }}
+          >
+            Total registrado
+          </div>
+
+          <strong
+            style={{
+              fontSize: 22,
+            }}
+          >
+            {formatarMoeda(
+              resumo.totalGeral
+            )}
+          </strong>
+        </div>
+      </section>
 
       {mostrarFormulario && (
         <section
@@ -528,7 +862,11 @@ useEffect(() => {
             marginBottom: 24,
           }}
         >
-          <h3>
+          <h3
+            style={{
+              marginTop: 0,
+            }}
+          >
             Nova Conta a Receber
           </h3>
 
@@ -575,6 +913,7 @@ useEffect(() => {
             <input
               type="number"
               step="0.01"
+              min="0"
               placeholder="Valor"
               value={valor}
               onChange={(e) =>
@@ -623,19 +962,95 @@ useEffect(() => {
         </section>
       )}
 
+      <section
+        style={{
+          display: "flex",
+          gap: 12,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Buscar cliente, venda ou descrição..."
+          value={busca}
+          onChange={(e) =>
+            setBusca(e.target.value)
+          }
+          style={{
+            flex: 1,
+            minWidth: 250,
+            padding: "10px 12px",
+            border:
+              "1px solid #ccc",
+            borderRadius: 6,
+          }}
+        />
+
+        <select
+          value={filtroSituacao}
+          onChange={(e) =>
+            setFiltroSituacao(
+              e.target
+                .value as FiltroSituacao
+            )
+          }
+          style={{
+            padding: "10px 12px",
+            border:
+              "1px solid #ccc",
+            borderRadius: 6,
+            minWidth: 180,
+          }}
+        >
+          <option value="todas">
+            Todas as situações
+          </option>
+
+          <option value="abertas">
+            Abertas
+          </option>
+
+          <option value="vencidas">
+            Vencidas
+          </option>
+
+          <option value="pagas">
+            Pagas
+          </option>
+        </select>
+      </section>
+
       {carregando ? (
         <p>
-          Carregando contas...
+          Carregando contas a receber...
         </p>
-      ) : contas.length === 0 ? (
-        <p>
-          Nenhuma conta a receber
-          encontrada.
-        </p>
+      ) : contasFiltradas.length ===
+        0 ? (
+        <div
+          style={{
+            border:
+              "1px solid #ddd",
+            borderRadius: 8,
+            padding: 30,
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              color: "#666",
+            }}
+          >
+            {contas.length === 0
+              ? "Nenhuma conta a receber encontrada."
+              : "Nenhuma conta corresponde aos filtros selecionados."}
+          </p>
+        </div>
       ) : (
         <Tabela
           colunas={colunas}
-          dados={contas}
+          dados={contasFiltradas}
           chaveLinha={(conta) =>
             String(
               conta.contaReceberId
@@ -648,40 +1063,69 @@ useEffect(() => {
         <section
           style={{
             marginTop: 24,
-            border: "1px solid #ddd",
+            border:
+              "1px solid #ddd",
             borderRadius: 8,
             padding: 20,
-            maxWidth: 500,
+            maxWidth: 550,
           }}
         >
-          <h3>
+          <h3
+            style={{
+              marginTop: 0,
+            }}
+          >
             Registrar Recebimento
           </h3>
 
-          <p>
-            <strong>
-              {contaSelecionada.clienteNome}
-            </strong>
-          </p>
+          <div
+            style={{
+              marginBottom: 18,
+              padding: 15,
+              background: "#f8f9fa",
+              borderRadius: 8,
+            }}
+          >
+            <p>
+              Cliente:{" "}
+              <strong>
+                {
+                  contaSelecionada.clienteNome
+                }
+              </strong>
+            </p>
 
-          <p>
-            Venda:{" "}
-            <strong>
-              {contaSelecionada.vendaId
-                ? `#${contaSelecionada.vendaId}`
-                : "Não vinculada"}
-            </strong>
-          </p>
+            <p>
+              Venda:{" "}
+              <strong>
+                {contaSelecionada.vendaId
+                  ? `#${contaSelecionada.vendaId}`
+                  : "Não vinculada"}
+              </strong>
+            </p>
 
-          <p>
-            Valor da conta:{" "}
-            <strong>
-              R${" "}
-              {contaSelecionada.valor.toFixed(
-                2
-              )}
-            </strong>
-          </p>
+            <p>
+              Vencimento:{" "}
+              <strong>
+                {formatarData(
+                  contaSelecionada.vencimento
+                )}
+              </strong>
+            </p>
+
+            <p
+              style={{
+                marginBottom: 0,
+              }}
+            >
+              Valor da conta:{" "}
+              <strong>
+                {formatarMoeda(
+                  contaSelecionada.valor
+                )}
+              </strong>
+            </p>
+          </div>
 
           <div
             style={{
@@ -692,6 +1136,7 @@ useEffect(() => {
             <input
               type="number"
               step="0.01"
+              min="0"
               placeholder="Valor recebido"
               value={
                 valorRecebimento
@@ -746,6 +1191,7 @@ useEffect(() => {
               style={{
                 display: "flex",
                 gap: 10,
+                flexWrap: "wrap",
               }}
             >
               <Botao
