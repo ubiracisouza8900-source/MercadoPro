@@ -59,7 +59,15 @@ export const VendaModel = {
     }
 
     if (!Array.isArray(itens) || itens.length === 0) {
-      throw new Error("A venda precisa ter ao menos um item.");
+      throw new Error(
+        "A venda precisa ter ao menos um item."
+      );
+    }
+
+    if (typeof formaPagamento !== "string") {
+      throw new Error(
+        "Forma de pagamento inválida."
+      );
     }
 
     const client = await db.connect();
@@ -78,7 +86,10 @@ export const VendaModel = {
           throw new Error("ID do produto inválido.");
         }
 
-        if (!Number.isFinite(quantidade) || quantidade <= 0) {
+        if (
+          !Number.isFinite(quantidade) ||
+          quantidade <= 0
+        ) {
           throw new Error("Quantidade inválida.");
         }
 
@@ -96,7 +107,7 @@ export const VendaModel = {
             quantidade_estoque,
             preco_venda
           FROM mercado_pro.produtos
-          WHERE produto_id = $1
+          WHERE produto_id = $1::integer
             AND ativo = TRUE
           FOR UPDATE
           `,
@@ -129,7 +140,9 @@ export const VendaModel = {
       }
 
       if (!Number.isFinite(total) || total < 0) {
-        throw new Error("Total da venda inválido.");
+        throw new Error(
+          "Total da venda inválido."
+        );
       }
 
       const venda = await client.query(
@@ -141,7 +154,13 @@ export const VendaModel = {
           total,
           forma_pagamento
         )
-        VALUES ($1, $2, $3, $4, $5)
+        VALUES (
+          $1::integer,
+          $2::integer,
+          $3::integer,
+          $4::numeric,
+          $5::text
+        )
         RETURNING
           venda_id,
           cliente_id,
@@ -156,22 +175,28 @@ export const VendaModel = {
           usuarioIdNumerico,
           caixaIdNumerico,
           total,
-          String(formaPagamento),
+          formaPagamento,
         ]
       );
 
       const vendaCriada = venda.rows[0];
 
-      const vendaId = Number(vendaCriada.venda_id);
+      const vendaId = Number(
+        vendaCriada.venda_id
+      );
 
       if (!Number.isInteger(vendaId)) {
-        throw new Error("ID da venda inválido.");
+        throw new Error(
+          "ID da venda inválido."
+        );
       }
 
       for (const item of itens) {
         const produtoId = Number(item.produtoId);
         const quantidade = Number(item.quantidade);
-        const precoUnitario = Number(item.precoUnitario);
+        const precoUnitario = Number(
+          item.precoUnitario
+        );
 
         const subtotal =
           quantidade * precoUnitario;
@@ -185,7 +210,13 @@ export const VendaModel = {
             preco_unitario,
             subtotal
           )
-          VALUES ($1, $2, $3, $4, $5)
+          VALUES (
+            $1::integer,
+            $2::integer,
+            $3::numeric,
+            $4::numeric,
+            $5::numeric
+          )
           `,
           [
             vendaId,
@@ -200,8 +231,8 @@ export const VendaModel = {
           `
           UPDATE mercado_pro.produtos
           SET quantidade_estoque =
-            quantidade_estoque - $1
-          WHERE produto_id = $2
+            quantidade_estoque - $1::numeric
+          WHERE produto_id = $2::integer
           `,
           [
             quantidade,
@@ -232,7 +263,13 @@ export const VendaModel = {
             valor,
             vencimento
           )
-          VALUES ($1, $2, $3, $4, $5)
+          VALUES (
+            $1::integer,
+            $2::integer,
+            $3::text,
+            $4::numeric,
+            $5::date
+          )
           `,
           [
             clienteIdNumerico,
@@ -250,11 +287,15 @@ export const VendaModel = {
             forma_pagamento,
             valor
           )
-          VALUES ($1, $2, $3)
+          VALUES (
+            $1::integer,
+            $2::text,
+            $3::numeric
+          )
           `,
           [
             vendaId,
-            String(formaPagamento),
+            formaPagamento,
             total,
           ]
         );
@@ -269,7 +310,14 @@ export const VendaModel = {
             valor,
             forma_pagamento
           )
-          VALUES ($1, $2, $3, $4, $5, $6)
+          VALUES (
+            $1::integer,
+            $2::integer,
+            $3::text,
+            $4::text,
+            $5::numeric,
+            $6::text
+          )
           `,
           [
             caixaIdNumerico,
@@ -277,29 +325,35 @@ export const VendaModel = {
             "venda",
             `Venda #${vendaId}`,
             total,
-            String(formaPagamento),
+            formaPagamento,
           ]
         );
 
-        await client.query(
-          `
-          UPDATE mercado_pro.caixa
-          SET valor_esperado =
-            COALESCE(valor_esperado, saldo_inicial)
-            +
-            CASE
-              WHEN $1 = 'dinheiro' THEN $2
-              ELSE 0
-            END
-          WHERE caixa_id = $3
-            AND status = 'aberto'
-          `,
-          [
-            String(formaPagamento),
-            total,
-            caixaIdNumerico,
-          ]
-        );
+        /*
+         * Atualiza o valor esperado somente
+         * quando a venda foi paga em dinheiro.
+         *
+         * PIX, crédito e débito não alteram
+         * o dinheiro físico esperado no caixa.
+         */
+        if (formaPagamento === "dinheiro") {
+          await client.query(
+            `
+            UPDATE mercado_pro.caixa
+            SET valor_esperado =
+              COALESCE(
+                valor_esperado,
+                saldo_inicial
+              ) + $1::numeric
+            WHERE caixa_id = $2::integer
+              AND status = 'aberto'
+            `,
+            [
+              total,
+              caixaIdNumerico,
+            ]
+          );
+        }
       }
 
       await client.query("COMMIT");
@@ -324,7 +378,9 @@ export const VendaModel = {
           Number(vendaCriada.total),
 
         formaPagamento:
-          String(vendaCriada.forma_pagamento),
+          String(
+            vendaCriada.forma_pagamento
+          ),
 
         dataVenda:
           vendaCriada.data_venda,
@@ -338,6 +394,12 @@ export const VendaModel = {
   },
 
   async buscarPorId(id: number) {
+    const idNumerico = Number(id);
+
+    if (!Number.isInteger(idNumerico)) {
+      throw new Error("ID da venda inválido.");
+    }
+
     const vendaResultado =
       await db.query<VendaBanco>(
         `
@@ -356,9 +418,9 @@ export const VendaModel = {
           ON c.cliente_id = v.cliente_id
         LEFT JOIN mercado_pro.contas_receber r
           ON r.venda_id = v.venda_id
-        WHERE v.venda_id = $1
+        WHERE v.venda_id = $1::integer
         `,
-        [id]
+        [idNumerico]
       );
 
     if (vendaResultado.rows.length === 0) {
@@ -381,10 +443,10 @@ export const VendaModel = {
         FROM mercado_pro.itens_venda iv
         INNER JOIN mercado_pro.produtos p
           ON p.produto_id = iv.produto_id
-        WHERE iv.venda_id = $1
+        WHERE iv.venda_id = $1::integer
         ORDER BY iv.item_venda_id
         `,
-        [id]
+        [idNumerico]
       );
 
     const itens: ItemVendaBanco[] =
@@ -473,6 +535,8 @@ export const VendaModel = {
       FROM mercado_pro.vendas
     `);
 
-    return Number(resultado.rows[0].total);
+    return Number(
+      resultado.rows[0].total
+    );
   },
 };
