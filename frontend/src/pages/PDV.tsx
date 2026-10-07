@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 
 import Input from "../components/Input";
@@ -39,6 +38,12 @@ interface VendaCriada {
   dataVenda: string;
 }
 
+interface ItemVendaEnvio {
+  produtoId: number;
+  quantidade: number;
+  precoUnitario: number;
+}
+
 const PDV: React.FC = () => {
   const [codigo, setCodigo] = useState("");
   const [quantidade, setQuantidade] = useState("1");
@@ -74,8 +79,7 @@ const PDV: React.FC = () => {
   const total = itens.reduce(
     (soma, item) =>
       soma +
-      item.quantidade *
-        item.precoUnitario,
+      item.quantidade * item.precoUnitario,
     0
   );
 
@@ -119,45 +123,47 @@ const PDV: React.FC = () => {
     return nomes[forma];
   }
 
-useEffect(() => {
-  const busca = clienteBusca.trim();
+  useEffect(() => {
+    const busca = clienteBusca.trim();
 
-  if (!busca || clienteSelecionado) {
-    return;
-  }
+    if (!busca || clienteSelecionado) {
+      return;
+    }
 
-  const temporizador = setTimeout(
-    async () => {
-      try {
-        setBuscandoCliente(true);
+    const temporizador = setTimeout(
+      async () => {
+        try {
+          setBuscandoCliente(true);
 
-        const resposta = await api.get(
-          `/clientes?busca=${encodeURIComponent(busca)}`
-        );
+          const resposta = await api.get(
+            `/clientes?busca=${encodeURIComponent(
+              busca
+            )}`
+          );
 
-        setClientes(
-          Array.isArray(resposta.data)
-            ? resposta.data
-            : []
-        );
-      } catch (erro) {
-        console.error(
-          "Erro ao pesquisar cliente:",
-          erro
-        );
+          setClientes(
+            Array.isArray(resposta.data)
+              ? resposta.data
+              : []
+          );
+        } catch (erro: unknown) {
+          console.error(
+            "Erro ao pesquisar cliente:",
+            erro
+          );
 
-        setClientes([]);
-      } finally {
-        setBuscandoCliente(false);
-      }
-    },
-    300
-  );
+          setClientes([]);
+        } finally {
+          setBuscandoCliente(false);
+        }
+      },
+      300
+    );
 
-  return () => {
-    clearTimeout(temporizador);
-  };
-}, [
+    return () => {
+      clearTimeout(temporizador);
+    };
+  }, [
     clienteBusca,
     clienteSelecionado,
   ]);
@@ -177,11 +183,12 @@ useEffect(() => {
   }
 
   async function adicionarItem() {
-    const codigoLido =
-      codigo.trim();
+    const codigoLido = codigo.trim();
 
     const quantidadeInformada =
-      Number(quantidade);
+      Number(
+        quantidade.replace(",", ".")
+      );
 
     if (!codigoLido) {
       alert(
@@ -191,7 +198,7 @@ useEffect(() => {
     }
 
     if (
-      !Number.isInteger(
+      !Number.isFinite(
         quantidadeInformada
       ) ||
       quantidadeInformada <= 0
@@ -203,21 +210,59 @@ useEffect(() => {
     }
 
     try {
-      const resposta = await api.get(
-        `/produtos/codigo/${encodeURIComponent(
-          codigoLido
-        )}`
-      );
+      const resposta =
+        await api.get<Produto>(
+          `/produtos/codigo/${encodeURIComponent(
+            codigoLido
+          )}`
+        );
 
-      const produto: Produto =
-        resposta.data;
+      const produto = resposta.data;
 
       if (
         !produto ||
-        !produto.produtoId
+        !Number.isInteger(
+          Number(produto.produtoId)
+        ) ||
+        Number(produto.produtoId) <= 0
       ) {
         alert(
           "Produto não encontrado."
+        );
+        return;
+      }
+
+      const produtoId =
+        Number(produto.produtoId);
+
+      const precoUnitario =
+        Number(produto.precoVenda);
+
+      const estoqueDisponivel =
+        Number(
+          produto.quantidadeEstoque
+        );
+
+      if (
+        !Number.isFinite(
+          precoUnitario
+        ) ||
+        precoUnitario < 0
+      ) {
+        alert(
+          "Preço do produto inválido."
+        );
+        return;
+      }
+
+      if (
+        !Number.isFinite(
+          estoqueDisponivel
+        ) ||
+        estoqueDisponivel < 0
+      ) {
+        alert(
+          "Estoque do produto inválido."
         );
         return;
       }
@@ -227,8 +272,8 @@ useEffect(() => {
       const itemExistente =
         itens.find(
           (item) =>
-            item.produtoId ===
-            produto.produtoId
+            Number(item.produtoId) ===
+            produtoId
         );
 
       const quantidadeAtual =
@@ -240,12 +285,10 @@ useEffect(() => {
 
       if (
         novaQuantidade >
-        Number(
-          produto.quantidadeEstoque
-        )
+        estoqueDisponivel
       ) {
         alert(
-          `Estoque insuficiente. Disponível: ${produto.quantidadeEstoque}.`
+          `Estoque insuficiente. Disponível: ${estoqueDisponivel}.`
         );
         return;
       }
@@ -253,12 +296,12 @@ useEffect(() => {
       if (itemExistente) {
         setItens((atual) =>
           atual.map((item) =>
-            item.produtoId ===
-            produto.produtoId
+            item.produtoId === produtoId
               ? {
                   ...item,
                   quantidade:
                     novaQuantidade,
+                  precoUnitario,
                 }
               : item
           )
@@ -267,23 +310,19 @@ useEffect(() => {
         setItens((atual) => [
           ...atual,
           {
-            produtoId:
-              produto.produtoId,
+            produtoId,
             produtoNome:
               produto.nome,
             quantidade:
               quantidadeInformada,
-            precoUnitario:
-              Number(
-                produto.precoVenda
-              ),
+            precoUnitario,
           },
         ]);
       }
 
       setCodigo("");
       setQuantidade("1");
-    } catch (erro) {
+    } catch (erro: unknown) {
       console.error(
         "Erro ao buscar produto:",
         erro
@@ -300,10 +339,10 @@ useEffect(() => {
     novaQuantidade: number
   ) {
     if (
-      !Number.isInteger(
+      !Number.isFinite(
         novaQuantidade
       ) ||
-      novaQuantidade < 1
+      novaQuantidade <= 0
     ) {
       return;
     }
@@ -413,35 +452,76 @@ useEffect(() => {
       }
     }
 
+    const itensVenda: ItemVendaEnvio[] =
+      itens.map((item) => ({
+        produtoId:
+          Number(item.produtoId),
+        quantidade:
+          Number(item.quantidade),
+        precoUnitario:
+          Number(item.precoUnitario),
+      }));
+
+    const itemInvalido =
+      itensVenda.find(
+        (item) =>
+          !Number.isInteger(
+            item.produtoId
+          ) ||
+          item.produtoId <= 0 ||
+          !Number.isFinite(
+            item.quantidade
+          ) ||
+          item.quantidade <= 0 ||
+          !Number.isFinite(
+            item.precoUnitario
+          ) ||
+          item.precoUnitario < 0
+      );
+
+    if (itemInvalido) {
+      console.error(
+        "Item inválido:",
+        itemInvalido
+      );
+
+      alert(
+        "Existe um produto com dados inválidos no carrinho. Remova e adicione o produto novamente."
+      );
+
+      return;
+    }
+
     try {
       setCarregando(true);
 
-      const resposta = await api.post(
-        "/vendas",
-        {
-          clienteId:
-            clienteSelecionado?.clienteId ??
-            null,
+      const resposta =
+        await api.post<VendaCriada>(
+          "/vendas",
+          {
+            clienteId:
+              clienteSelecionado?.clienteId ??
+              null,
 
-          itens,
+            itens: itensVenda,
 
-          formaPagamento,
+            formaPagamento,
 
-          valorRecebido:
-            formaPagamento ===
-            "dinheiro"
-              ? valorRecebidoNumero
-              : total,
+            valorRecebido:
+              formaPagamento ===
+              "dinheiro"
+                ? valorRecebidoNumero
+                : total,
 
-          total,
-        }
-      );
+            total,
+          }
+        );
 
-      const venda: VendaCriada =
+      const venda =
         resposta.data;
 
       setVendaFinalizada(venda);
-    } catch (erro) {
+    } catch (erro: unknown) {
       console.error(
         "Erro ao finalizar venda:",
         erro
@@ -501,8 +581,7 @@ useEffect(() => {
                 )
               }
               disabled={
-                item.quantidade <=
-                1
+                item.quantidade <= 1
               }
               style={{
                 width: 32,
@@ -522,7 +601,8 @@ useEffect(() => {
 
             <input
               type="number"
-              min="1"
+              min="0.001"
+              step="0.001"
               value={
                 item.quantidade
               }
@@ -536,7 +616,7 @@ useEffect(() => {
                 )
               }
               style={{
-                width: 55,
+                width: 70,
                 height: 30,
                 textAlign:
                   "center",
@@ -1730,4 +1810,3 @@ useEffect(() => {
 };
 
 export default PDV;
-
