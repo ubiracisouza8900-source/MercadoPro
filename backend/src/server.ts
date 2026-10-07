@@ -19,9 +19,22 @@ import contaPagarRoutes from "./routes/contaPagarRoutes";
 import contaReceberRoutes from "./routes/contaReceberRoutes";
 import relatorioRoutes from "./routes/relatorioRoutes";
 
+;
+
+
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://mercado-orr9fm8x5-ubiracisouza8900-2762s-projects.vercel.app",
+      "https://mercado-pro.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
 // ===============================
