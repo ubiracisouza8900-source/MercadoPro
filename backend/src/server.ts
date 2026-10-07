@@ -26,10 +26,16 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "https://mercado-orr9fm8x5-ubiracisouza8900-2762s-projects.vercel.app",
-      "https://mercado-pro.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Origem não permitida pelo CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
