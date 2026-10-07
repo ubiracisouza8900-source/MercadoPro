@@ -23,6 +23,22 @@ interface Venda {
   dataVenda: string;
 }
 
+interface FechamentoImpressao {
+  caixaId?: number;
+  abertoEm?: string;
+  fechadoEm: string;
+  saldoInicial: number;
+  totalDinheiro: number;
+  totalPix: number;
+  totalCredito: number;
+  totalDebito: number;
+  totalFiado: number;
+  totalVendas: number;
+  valorEsperado: number;
+  valorInformado: number;
+  diferenca: number;
+}
+
 const Caixa: React.FC = () => {
   const [caixa, setCaixa] = useState<Caixa | null>(null);
 
@@ -38,6 +54,9 @@ const Caixa: React.FC = () => {
 
   const [diferencaConferencia, setDiferencaConferencia] =
     useState(0);
+
+  const [fechamentoParaImprimir, setFechamentoParaImprimir] =
+    useState<FechamentoImpressao | null>(null);
 
   async function carregarCaixa() {
     try {
@@ -163,6 +182,29 @@ const Caixa: React.FC = () => {
       return;
     }
 
+    const valorContado =
+      Number(valorInformado);
+
+    const diferenca =
+      valorContado -
+      Number(caixa.valorEsperado || 0);
+
+    const fechamento: FechamentoImpressao = {
+      caixaId: caixa.caixaId,
+      abertoEm: caixa.abertoEm,
+      fechadoEm: new Date().toISOString(),
+      saldoInicial: caixa.saldoInicial,
+      totalDinheiro,
+      totalPix,
+      totalCredito,
+      totalDebito,
+      totalFiado,
+      totalVendas,
+      valorEsperado: caixa.valorEsperado,
+      valorInformado: valorContado,
+      diferenca,
+    };
+
     try {
       setCarregando(true);
 
@@ -171,8 +213,12 @@ const Caixa: React.FC = () => {
           caixa.valorEsperado,
 
         valorInformado:
-          Number(valorInformado),
+          valorContado,
       });
+
+      setFechamentoParaImprimir(
+        fechamento
+      );
 
       setMostrarConferencia(false);
       setValorInformado("");
@@ -196,6 +242,10 @@ const Caixa: React.FC = () => {
     setMostrarConferencia(false);
   }
 
+  function imprimirFechamento() {
+    window.print();
+  }
+
   function dinheiro(valor: number) {
     return valor
       .toFixed(2)
@@ -217,6 +267,9 @@ const Caixa: React.FC = () => {
 
       case "debito":
         return "Débito";
+
+      case "fiado":
+        return "Fiado";
 
       default:
         return forma;
@@ -283,11 +336,25 @@ const Caixa: React.FC = () => {
         0
       );
 
+  const totalFiado =
+    vendasDoCaixa
+      .filter(
+        (venda) =>
+          venda.formaPagamento ===
+          "fiado"
+      )
+      .reduce(
+        (total, venda) =>
+          total + Number(venda.total || 0),
+        0
+      );
+
   const totalVendas =
     totalDinheiro +
     totalPix +
     totalCredito +
-    totalDebito;
+    totalDebito +
+    totalFiado;
 
   return (
     <main
@@ -297,403 +364,537 @@ const Caixa: React.FC = () => {
         margin: "0 auto",
       }}
     >
-      <h1>Caixa</h1>
-
-      <p>
-        Caixa do dia •{" "}
-        <strong>
-          {caixaAberto
-            ? "ABERTO"
-            : "FECHADO"}
-        </strong>
-      </p>
-
-      {!caixaAberto ? (
-        <section
-          style={{
-            marginTop: 30,
-            padding: 24,
-            border: "1px solid #ddd",
-            borderRadius: 10,
-            maxWidth: 500,
-          }}
-        >
-          <h2>Abrir Caixa</h2>
-
-          <p>
-            Informe o dinheiro disponível
-            no início do dia.
-          </p>
-
-          <label>
-            Saldo inicial
-          </label>
-
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={saldoInicial}
-            onChange={(e) =>
-              setSaldoInicial(
-                e.target.value
-              )
+      <style>
+        {`
+          @media print {
+            body {
+              margin: 0;
+              background: #fff;
             }
-            placeholder="0,00"
-            style={{
-              display: "block",
-              width: "100%",
-              padding: 12,
-              marginTop: 8,
-              marginBottom: 20,
-              boxSizing: "border-box",
-            }}
-          />
 
-          <Botao
-            texto={
-              carregando
-                ? "Abrindo..."
-                : "Abrir Caixa"
+            body * {
+              visibility: hidden;
             }
-            variante="sucesso"
-            onClick={abrirCaixa}
-          />
-        </section>
-      ) : (
-        <>
+
+            .area-impressao,
+            .area-impressao * {
+              visibility: visible;
+            }
+
+            .area-impressao {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              padding: 30px;
+              box-sizing: border-box;
+            }
+
+            .nao-imprimir {
+              display: none !important;
+            }
+          }
+        `}
+      </style>
+
+      <div className="nao-imprimir">
+        <h1>Caixa</h1>
+
+        <p>
+          Caixa do dia •{" "}
+          <strong>
+            {caixaAberto
+              ? "ABERTO"
+              : "FECHADO"}
+          </strong>
+        </p>
+
+        {fechamentoParaImprimir && (
           <section
             style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(4, 1fr)",
-              gap: 16,
-              marginTop: 30,
+              marginTop: 20,
+              padding: 20,
+              border: "1px solid #ddd",
+              borderRadius: 10,
             }}
           >
-            <div
-              style={{
-                padding: 20,
-                border: "1px solid #ddd",
-                borderRadius: 10,
-              }}
-            >
-              <strong>
-                💵 Dinheiro
-              </strong>
+            <h2>
+              ✅ Caixa fechado
+            </h2>
 
-              <h2>
-                R${" "}
-                {dinheiro(
-                  totalDinheiro
-                )}
-              </h2>
-            </div>
+            <p>
+              O fechamento foi realizado
+              com sucesso.
+            </p>
 
-            <div
-              style={{
-                padding: 20,
-                border: "1px solid #ddd",
-                borderRadius: 10,
-              }}
-            >
-              <strong>
-                📱 PIX
-              </strong>
-
-              <h2>
-                R${" "}
-                {dinheiro(totalPix)}
-              </h2>
-            </div>
-
-            <div
-              style={{
-                padding: 20,
-                border: "1px solid #ddd",
-                borderRadius: 10,
-              }}
-            >
-              <strong>
-                💳 Crédito
-              </strong>
-
-              <h2>
-                R${" "}
-                {dinheiro(
-                  totalCredito
-                )}
-              </h2>
-            </div>
-
-            <div
-              style={{
-                padding: 20,
-                border: "1px solid #ddd",
-                borderRadius: 10,
-              }}
-            >
-              <strong>
-                💳 Débito
-              </strong>
-
-              <h2>
-                R${" "}
-                {dinheiro(
-                  totalDebito
-                )}
-              </h2>
-            </div>
+            <Botao
+              texto="🖨️ Imprimir Fechamento"
+              variante="sucesso"
+              onClick={imprimirFechamento}
+            />
           </section>
+        )}
 
+        {!caixaAberto ? (
           <section
             style={{
               marginTop: 30,
               padding: 24,
               border: "1px solid #ddd",
               borderRadius: 10,
+              maxWidth: 500,
             }}
           >
-            <h2>
-              Resumo do Caixa
-            </h2>
+            <h2>Abrir Caixa</h2>
 
             <p>
-              Saldo inicial:{" "}
-              <strong>
-                R${" "}
-                {dinheiro(
-                  caixa.saldoInicial
-                )}
-              </strong>
+              Informe o dinheiro disponível
+              no início do dia.
             </p>
-
-            <p>
-              Total de vendas:{" "}
-              <strong>
-                R${" "}
-                {dinheiro(
-                  totalVendas
-                )}
-              </strong>
-            </p>
-
-            <p>
-              Valor esperado:{" "}
-              <strong>
-                R${" "}
-                {dinheiro(
-                  caixa.valorEsperado
-                )}
-              </strong>
-            </p>
-
-            <hr />
-
-            <h2>
-              Fechamento
-            </h2>
 
             <label>
-              Valor contado no caixa
+              Saldo inicial
             </label>
 
             <input
               type="number"
               step="0.01"
               min="0"
-              value={valorInformado}
+              value={saldoInicial}
               onChange={(e) =>
-                setValorInformado(
+                setSaldoInicial(
                   e.target.value
                 )
               }
               placeholder="0,00"
               style={{
                 display: "block",
-                width: 300,
+                width: "100%",
                 padding: 12,
                 marginTop: 8,
                 marginBottom: 20,
+                boxSizing: "border-box",
               }}
             />
 
             <Botao
-              texto="Conferir Caixa"
-              variante="perigo"
-              onClick={iniciarFechamento}
+              texto={
+                carregando
+                  ? "Abrindo..."
+                  : "Abrir Caixa"
+              }
+              variante="sucesso"
+              onClick={abrirCaixa}
             />
           </section>
-
-          <section
-            style={{
-              marginTop: 30,
-              padding: 24,
-              border: "1px solid #ddd",
-              borderRadius: 10,
-            }}
-          >
-            <h2>
-              📋 Vendas do Caixa
-            </h2>
-
-            {vendasDoCaixa.length ===
-            0 ? (
-              <p>
-                Nenhuma venda realizada
-                neste caixa.
-              </p>
-            ) : (
+        ) : (
+          <>
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(5, 1fr)",
+                gap: 16,
+                marginTop: 30,
+              }}
+            >
               <div
                 style={{
-                  overflowX: "auto",
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
                 }}
               >
-                <table
+                <strong>
+                  💵 Dinheiro
+                </strong>
+
+                <h2>
+                  R${" "}
+                  {dinheiro(
+                    totalDinheiro
+                  )}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                }}
+              >
+                <strong>
+                  📱 PIX
+                </strong>
+
+                <h2>
+                  R${" "}
+                  {dinheiro(totalPix)}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                }}
+              >
+                <strong>
+                  💳 Crédito
+                </strong>
+
+                <h2>
+                  R${" "}
+                  {dinheiro(
+                    totalCredito
+                  )}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                }}
+              >
+                <strong>
+                  💳 Débito
+                </strong>
+
+                <h2>
+                  R${" "}
+                  {dinheiro(
+                    totalDebito
+                  )}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                }}
+              >
+                <strong>
+                  📝 Fiado
+                </strong>
+
+                <h2>
+                  R${" "}
+                  {dinheiro(
+                    totalFiado
+                  )}
+                </h2>
+              </div>
+            </section>
+
+            <section
+              style={{
+                marginTop: 30,
+                padding: 24,
+                border: "1px solid #ddd",
+                borderRadius: 10,
+              }}
+            >
+              <h2>
+                Resumo do Caixa
+              </h2>
+
+              <p>
+                Saldo inicial:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    caixa.saldoInicial
+                  )}
+                </strong>
+              </p>
+
+              <p>
+                Dinheiro recebido:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    totalDinheiro
+                  )}
+                </strong>
+              </p>
+
+              <p>
+                PIX:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(totalPix)}
+                </strong>
+              </p>
+
+              <p>
+                Crédito:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    totalCredito
+                  )}
+                </strong>
+              </p>
+
+              <p>
+                Débito:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    totalDebito
+                  )}
+                </strong>
+              </p>
+
+              <p>
+                Fiado:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    totalFiado
+                  )}
+                </strong>
+              </p>
+
+              <hr />
+
+              <p>
+                Total de vendas:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    totalVendas
+                  )}
+                </strong>
+              </p>
+
+              <p>
+                Valor esperado no caixa:{" "}
+                <strong>
+                  R${" "}
+                  {dinheiro(
+                    caixa.valorEsperado
+                  )}
+                </strong>
+              </p>
+
+              <hr />
+
+              <h2>
+                Fechamento
+              </h2>
+
+              <label>
+                Valor contado no caixa
+              </label>
+
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={valorInformado}
+                onChange={(e) =>
+                  setValorInformado(
+                    e.target.value
+                  )
+                }
+                placeholder="0,00"
+                style={{
+                  display: "block",
+                  width: 300,
+                  padding: 12,
+                  marginTop: 8,
+                  marginBottom: 20,
+                }}
+              />
+
+              <Botao
+                texto="Conferir Caixa"
+                variante="perigo"
+                onClick={
+                  iniciarFechamento
+                }
+              />
+            </section>
+
+            <section
+              style={{
+                marginTop: 30,
+                padding: 24,
+                border: "1px solid #ddd",
+                borderRadius: 10,
+              }}
+            >
+              <h2>
+                📋 Vendas do Caixa
+              </h2>
+
+              {vendasDoCaixa.length ===
+              0 ? (
+                <p>
+                  Nenhuma venda realizada
+                  neste caixa.
+                </p>
+              ) : (
+                <div
                   style={{
-                    width: "100%",
-                    borderCollapse:
-                      "collapse",
+                    overflowX: "auto",
                   }}
                 >
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 10,
-                          borderBottom:
-                            "1px solid #ddd",
-                        }}
-                      >
-                        Venda
-                      </th>
-
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 10,
-                          borderBottom:
-                            "1px solid #ddd",
-                        }}
-                      >
-                        Pagamento
-                      </th>
-
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 10,
-                          borderBottom:
-                            "1px solid #ddd",
-                        }}
-                      >
-                        Valor
-                      </th>
-
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 10,
-                          borderBottom:
-                            "1px solid #ddd",
-                        }}
-                      >
-                        Data
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {vendasDoCaixa.map(
-                      (venda) => (
-                        <tr
-                          key={
-                            venda.id
-                          }
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse:
+                        "collapse",
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: 10,
+                            borderBottom:
+                              "1px solid #ddd",
+                          }}
                         >
-                          <td
-                            style={{
-                              padding: 10,
-                              borderBottom:
-                                "1px solid #eee",
-                            }}
+                          Venda
+                        </th>
+
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: 10,
+                            borderBottom:
+                              "1px solid #ddd",
+                          }}
+                        >
+                          Pagamento
+                        </th>
+
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: 10,
+                            borderBottom:
+                              "1px solid #ddd",
+                          }}
+                        >
+                          Valor
+                        </th>
+
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: 10,
+                            borderBottom:
+                              "1px solid #ddd",
+                          }}
+                        >
+                          Data
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {vendasDoCaixa.map(
+                        (venda) => (
+                          <tr
+                            key={
+                              venda.id
+                            }
                           >
-                            #{venda.id}
-                          </td>
+                            <td
+                              style={{
+                                padding: 10,
+                                borderBottom:
+                                  "1px solid #eee",
+                              }}
+                            >
+                              #{venda.id}
+                            </td>
 
-                          <td
-                            style={{
-                              padding: 10,
-                              borderBottom:
-                                "1px solid #eee",
-                            }}
-                          >
-                            {nomeFormaPagamento(
-                              venda.formaPagamento
-                            )}
-                          </td>
+                            <td
+                              style={{
+                                padding: 10,
+                                borderBottom:
+                                  "1px solid #eee",
+                              }}
+                            >
+                              {nomeFormaPagamento(
+                                venda.formaPagamento
+                              )}
+                            </td>
 
-                          <td
-                            style={{
-                              padding: 10,
-                              borderBottom:
-                                "1px solid #eee",
-                            }}
-                          >
-                            R${" "}
-                            {dinheiro(
-                              Number(
-                                venda.total
-                              )
-                            )}
-                          </td>
+                            <td
+                              style={{
+                                padding: 10,
+                                borderBottom:
+                                  "1px solid #eee",
+                              }}
+                            >
+                              R${" "}
+                              {dinheiro(
+                                Number(
+                                  venda.total
+                                )
+                              )}
+                            </td>
 
-                          <td
-                            style={{
-                              padding: 10,
-                              borderBottom:
-                                "1px solid #eee",
-                            }}
-                          >
-                            {new Date(
-                              venda.dataVenda
-                            ).toLocaleString(
-                              "pt-BR"
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+                            <td
+                              style={{
+                                padding: 10,
+                                borderBottom:
+                                  "1px solid #eee",
+                              }}
+                            >
+                              {new Date(
+                                venda.dataVenda
+                              ).toLocaleString(
+                                "pt-BR"
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
 
-          <section
-            style={{
-              marginTop: 30,
-              padding: 24,
-              border: "1px solid #ddd",
-              borderRadius: 10,
-            }}
-          >
-            <h2>
-              📅 Histórico do Caixa
-            </h2>
+            <section
+              style={{
+                marginTop: 30,
+                padding: 24,
+                border: "1px solid #ddd",
+                borderRadius: 10,
+              }}
+            >
+              <h2>
+                📅 Histórico do Caixa
+              </h2>
 
-            <p>
-              O histórico dos caixas
-              fechados será integrado
-              aqui.
-            </p>
-          </section>
-        </>
-      )}
+              <p>
+                O histórico dos caixas
+                fechados será integrado
+                posteriormente pelo
+                backend.
+              </p>
+            </section>
+          </>
+        )}
+      </div>
 
       {mostrarConferencia && caixa && (
         <div
+          className="nao-imprimir"
           style={{
             position: "fixed",
             inset: 0,
@@ -731,7 +932,18 @@ const Caixa: React.FC = () => {
 
             <p>
               <strong>
-                Valor esperado:
+                Total de vendas:
+              </strong>
+            </p>
+
+            <h2>
+              R${" "}
+              {dinheiro(totalVendas)}
+            </h2>
+
+            <p>
+              <strong>
+                Valor esperado no caixa:
               </strong>
             </p>
 
@@ -756,6 +968,35 @@ const Caixa: React.FC = () => {
             </h2>
 
             <hr />
+
+            <p>
+              Dinheiro recebido:{" "}
+              <strong>
+                R${" "}
+                {dinheiro(
+                  totalDinheiro
+                )}
+              </strong>
+            </p>
+
+            <p>
+              Fiado:{" "}
+              <strong>
+                R${" "}
+                {dinheiro(totalFiado)}
+              </strong>
+            </p>
+
+            <p
+              style={{
+                fontSize: 13,
+                color: "#666",
+              }}
+            >
+              O valor fiado entra no total
+              de vendas, mas não representa
+              dinheiro recebido no caixa.
+            </p>
 
             {diferencaConferencia > 0 && (
               <div
@@ -786,11 +1027,6 @@ const Caixa: React.FC = () => {
                     diferencaConferencia
                   )}
                 </strong>
-
-                <p>
-                  Valor contado acima do
-                  valor esperado.
-                </p>
               </div>
             )}
 
@@ -825,11 +1061,6 @@ const Caixa: React.FC = () => {
                     )
                   )}
                 </strong>
-
-                <p>
-                  Valor contado abaixo do
-                  valor esperado.
-                </p>
               </div>
             )}
 
@@ -848,8 +1079,9 @@ const Caixa: React.FC = () => {
                 </h2>
 
                 <p>
-                  O valor contado é exatamente
-                  igual ao valor esperado.
+                  O valor contado é
+                  exatamente igual ao
+                  valor esperado.
                 </p>
               </div>
             )}
@@ -888,6 +1120,158 @@ const Caixa: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {fechamentoParaImprimir && (
+        <section className="area-impressao">
+          <h1
+            style={{
+              textAlign: "center",
+            }}
+          >
+            FECHAMENTO DE CAIXA
+          </h1>
+
+          <hr />
+
+          <p>
+            <strong>Caixa:</strong>{" "}
+            {fechamentoParaImprimir.caixaId
+              ? `#${fechamentoParaImprimir.caixaId}`
+              : "Não informado"}
+          </p>
+
+          <p>
+            <strong>Abertura:</strong>{" "}
+            {fechamentoParaImprimir.abertoEm
+              ? new Date(
+                  fechamentoParaImprimir.abertoEm
+                ).toLocaleString("pt-BR")
+              : "Não informado"}
+          </p>
+
+          <p>
+            <strong>Fechamento:</strong>{" "}
+            {new Date(
+              fechamentoParaImprimir.fechadoEm
+            ).toLocaleString("pt-BR")}
+          </p>
+
+          <hr />
+
+          <h2>Resumo financeiro</h2>
+
+          <p>
+            Saldo inicial:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.saldoInicial
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Dinheiro:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.totalDinheiro
+              )}
+            </strong>
+          </p>
+
+          <p>
+            PIX:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.totalPix
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Crédito:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.totalCredito
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Débito:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.totalDebito
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Fiado:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.totalFiado
+              )}
+            </strong>
+          </p>
+
+          <hr />
+
+          <h2>
+            Total de vendas: R${" "}
+            {dinheiro(
+              fechamentoParaImprimir.totalVendas
+            )}
+          </h2>
+
+          <p>
+            Valor esperado no caixa:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.valorEsperado
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Valor contado:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.valorInformado
+              )}
+            </strong>
+          </p>
+
+          <p>
+            Diferença:{" "}
+            <strong>
+              R${" "}
+              {dinheiro(
+                fechamentoParaImprimir.diferenca
+              )}
+            </strong>
+          </p>
+
+          <hr />
+
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: 40,
+            }}
+          >
+            Documento de conferência de
+            fechamento de caixa.
+          </p>
+        </section>
       )}
     </main>
   );
