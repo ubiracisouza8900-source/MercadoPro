@@ -34,43 +34,6 @@ const Estoque: React.FC = () => {
         </span>
       ),
     },
-    {
-      chave: "produtoId",
-      titulo: "Ações",
-      render: (_v, produto) => (
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={() => console.log("Editar produto:", produto)}
-            style={{
-              padding: "6px 10px",
-              border: "none",
-              borderRadius: 6,
-              cursor: "pointer",
-              background: "#2563eb",
-              color: "#fff",
-            }}
-          >
-            Editar
-          </button>
-
-          <button
-            type="button"
-            onClick={() => console.log("Excluir produto:", produto)}
-            style={{
-              padding: "6px 10px",
-              border: "none",
-              borderRadius: 6,
-              cursor: "pointer",
-              background: "#dc2626",
-              color: "#fff",
-            }}
-          >
-            Excluir
-          </button>
-        </div>
-      ),
-    },
   ];
 
   return (
