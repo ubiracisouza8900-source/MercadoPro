@@ -119,53 +119,45 @@ const PDV: React.FC = () => {
     return nomes[forma];
   }
 
-  useEffect(() => {
-    const busca = clienteBusca.trim();
+useEffect(() => {
+  const busca = clienteBusca.trim();
 
-    if (!busca) {
-      setClientes([]);
-      setBuscandoCliente(false);
-      return;
-    }
+  if (!busca || clienteSelecionado) {
+    return;
+  }
 
-    if (clienteSelecionado) {
-      return;
-    }
+  const temporizador = setTimeout(
+    async () => {
+      try {
+        setBuscandoCliente(true);
 
-    const temporizador = setTimeout(
-      async () => {
-        try {
-          setBuscandoCliente(true);
+        const resposta = await api.get(
+          `/clientes?busca=${encodeURIComponent(busca)}`
+        );
 
-          const resposta = await api.get(
-            `/clientes?busca=${encodeURIComponent(
-              busca
-            )}`
-          );
+        setClientes(
+          Array.isArray(resposta.data)
+            ? resposta.data
+            : []
+        );
+      } catch (erro) {
+        console.error(
+          "Erro ao pesquisar cliente:",
+          erro
+        );
 
-          setClientes(
-            Array.isArray(resposta.data)
-              ? resposta.data
-              : []
-          );
-        } catch (erro) {
-          console.error(
-            "Erro ao pesquisar cliente:",
-            erro
-          );
+        setClientes([]);
+      } finally {
+        setBuscandoCliente(false);
+      }
+    },
+    300
+  );
 
-          setClientes([]);
-        } finally {
-          setBuscandoCliente(false);
-        }
-      },
-      300
-    );
-
-    return () => {
-      clearTimeout(temporizador);
-    };
-  }, [
+  return () => {
+    clearTimeout(temporizador);
+  };
+}, [
     clienteBusca,
     clienteSelecionado,
   ]);
