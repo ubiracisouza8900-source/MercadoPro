@@ -128,6 +128,98 @@ const PDV: React.FC = () => {
     return nomes[forma];
   }
 
+  function formatarDataDigitada(
+    valor: string
+  ) {
+    const numeros = valor
+      .replace(/\D/g, "")
+      .slice(0, 8);
+
+    if (numeros.length <= 2) {
+      return numeros;
+    }
+
+    if (numeros.length <= 4) {
+      return `${numeros.slice(
+        0,
+        2
+      )}/${numeros.slice(2)}`;
+    }
+
+    return `${numeros.slice(
+      0,
+      2
+    )}/${numeros.slice(
+      2,
+      4
+    )}/${numeros.slice(4)}`;
+  }
+
+  function converterDataParaISO(
+    valor: string
+  ) {
+    const partes = valor.split("/");
+
+    if (partes.length !== 3) {
+      return null;
+    }
+
+    const diaTexto = partes[0];
+    const mesTexto = partes[1];
+    const anoTexto = partes[2];
+
+    if (
+      diaTexto.length !== 2 ||
+      mesTexto.length !== 2 ||
+      anoTexto.length !== 4
+    ) {
+      return null;
+    }
+
+    const dia = Number(diaTexto);
+    const mes = Number(mesTexto);
+    const ano = Number(anoTexto);
+
+    if (
+      !Number.isInteger(dia) ||
+      !Number.isInteger(mes) ||
+      !Number.isInteger(ano)
+    ) {
+      return null;
+    }
+
+    if (
+      dia < 1 ||
+      dia > 31 ||
+      mes < 1 ||
+      mes > 12
+    ) {
+      return null;
+    }
+
+    const data = new Date(
+      ano,
+      mes - 1,
+      dia
+    );
+
+    if (
+      data.getFullYear() !== ano ||
+      data.getMonth() !== mes - 1 ||
+      data.getDate() !== dia
+    ) {
+      return null;
+    }
+
+    return `${ano}-${String(mes).padStart(
+      2,
+      "0"
+    )}-${String(dia).padStart(
+      2,
+      "0"
+    )}`;
+  }
+
   useEffect(() => {
     const busca = clienteBusca.trim();
 
@@ -459,6 +551,9 @@ const PDV: React.FC = () => {
       }
     }
 
+    let vencimentoISO:
+      string | null = null;
+
     if (
       formaPagamento ===
       "fiado"
@@ -473,6 +568,18 @@ const PDV: React.FC = () => {
       if (!vencimento) {
         alert(
           "Informe a data de vencimento da venda fiado."
+        );
+        return;
+      }
+
+      vencimentoISO =
+        converterDataParaISO(
+          vencimento
+        );
+
+      if (!vencimentoISO) {
+        alert(
+          "Informe uma data válida no formato DD/MM/AAAA."
         );
         return;
       }
@@ -544,7 +651,7 @@ const PDV: React.FC = () => {
             vencimento:
               formaPagamento ===
               "fiado"
-                ? vencimento
+                ? vencimentoISO
                 : undefined,
           }
         );
@@ -1549,10 +1656,14 @@ const PDV: React.FC = () => {
               <Input
                 label="Data de vencimento"
                 valor={vencimento}
-                aoAlterar={
-                  setVencimento
+                aoAlterar={(valor) =>
+                  setVencimento(
+                    formatarDataDigitada(
+                      valor
+                    )
+                  )
                 }
-                placeholder="AAAA-MM-DD"
+                placeholder="DD/MM/AAAA"
               />
 
               <div
@@ -1562,8 +1673,8 @@ const PDV: React.FC = () => {
                   color: "#666",
                 }}
               >
-                Informe a data em que
-                o cliente deverá pagar.
+                Digite a data no formato
+                DD/MM/AAAA.
               </div>
             </div>
           )}
@@ -1612,7 +1723,8 @@ const PDV: React.FC = () => {
               background: "#fff",
               borderRadius: 12,
               padding: 24,
-              boxSizing: "border-box",
+              boxSizing:
+                "border-box",
               boxShadow:
                 "0 20px 50px rgba(0,0,0,0.25)",
             }}
@@ -1671,7 +1783,9 @@ const PDV: React.FC = () => {
                     "4px 0",
                 }}
               >
-                <strong>Data:</strong>{" "}
+                <strong>
+                  Data:
+                </strong>{" "}
                 {new Date(
                   vendaFinalizada.dataVenda
                 ).toLocaleString(
@@ -1872,11 +1986,7 @@ const PDV: React.FC = () => {
                   </span>
 
                   <strong>
-                    {new Date(
-                      `${vencimento}T00:00:00`
-                    ).toLocaleDateString(
-                      "pt-BR"
-                    )}
+                    {vencimento}
                   </strong>
                 </div>
               )}
@@ -1918,7 +2028,8 @@ const PDV: React.FC = () => {
                   border:
                     "1px solid #ccc",
                   background: "#fff",
-                  cursor: "pointer",
+                  cursor:
+                    "pointer",
                   fontWeight: 600,
                 }}
               >
@@ -1938,7 +2049,8 @@ const PDV: React.FC = () => {
                   background:
                     "#2563eb",
                   color: "#fff",
-                  cursor: "pointer",
+                  cursor:
+                    "pointer",
                   fontWeight: 600,
                 }}
               >
