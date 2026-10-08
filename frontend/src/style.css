@@ -1,28 +1,83 @@
+/* =========================================================
+   RESET GLOBAL
+   ========================================================= */
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+html {
+  font-size: 16px;
+}
+
 body {
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
   background: #f4f6f8;
   color: #1c1f26;
+  overflow-x: hidden;
 }
 
+/* =========================================================
+   ELEMENTOS GERAIS
+   ========================================================= */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
 .login-container {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+
+  padding: 20px;
+
   background: #14171f;
 }
 
 .login-caixa {
+  width: 100%;
+  max-width: 340px;
+
   background: #fff;
+
   padding: 32px;
+
   border-radius: 12px;
-  width: 340px;
+
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -36,4 +91,34 @@ body {
   color: #6b7280;
   margin-bottom: 20px;
   font-size: 14px;
+}
+
+/* =========================================================
+   CELULAR
+   ========================================================= */
+
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-caixa {
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 10px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (min-width: 481px) and (max-width: 1024px) {
+  .login-caixa {
+    max-width: 380px;
+  }
 }
