@@ -1,14 +1,15 @@
+
 import React from "react";
 import MenuPrincipal from "../MenuPrincipal";
 import "./Sidebar.css";
 
-/**
- * Sidebar - barra lateral fixa da aplicação. Importa o MenuPrincipal
- * para renderizar os links de navegação.
- */
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  aberto?: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ aberto = false }) => {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${aberto ? "sidebar--aberto" : ""}`}>
       <div className="sidebar__logo">MercadoPro</div>
       <MenuPrincipal />
     </aside>
