@@ -86,7 +86,7 @@ const PDV: React.FC = () => {
     (soma, item) =>
       soma +
       item.quantidade *
-        item.precoUnitario,
+      item.precoUnitario,
     0
   );
 
@@ -439,13 +439,13 @@ const PDV: React.FC = () => {
         setItens((atual) =>
           atual.map((item) =>
             item.produtoId ===
-            produtoId
+              produtoId
               ? {
-                  ...item,
-                  quantidade:
-                    novaQuantidade,
-                  precoUnitario,
-                }
+                ...item,
+                quantidade:
+                  novaQuantidade,
+                precoUnitario,
+              }
               : item
           )
         );
@@ -494,10 +494,10 @@ const PDV: React.FC = () => {
       atual.map((item) =>
         item.produtoId === produtoId
           ? {
-              ...item,
-              quantidade:
-                novaQuantidade,
-            }
+            ...item,
+            quantidade:
+              novaQuantidade,
+          }
           : item
       )
     );
@@ -590,7 +590,7 @@ const PDV: React.FC = () => {
         alert(
           `O valor recebido é menor que o total da venda. Faltam ${dinheiro(
             total -
-              valorRecebidoNumero
+            valorRecebidoNumero
           )}.`
         );
         return;
@@ -694,53 +694,40 @@ const PDV: React.FC = () => {
      * Aqui enviamos clienteId para o VendaController,
      * que é exatamente o nome esperado por ele.
      */
-    const clienteId =
-      formaPagamento === "fiado"
-        ? Number(
-            clienteSelecionado?.cliente_id
-          )
-        : null;
+   let clienteId: number | null = null;
 
-   const clienteIdNumerico = Number(clienteId);
+if (formaPagamento === "fiado") {
+  const idCliente = Number(clienteSelecionado?.cliente_id);
 
-if (
-  !Number.isInteger(clienteIdNumerico) ||
-  clienteIdNumerico <= 0
-) {
-      alert(
-        "Cliente inválido. Selecione o cliente novamente."
-      );
-      return;
-    }
+  if (!Number.isInteger(idCliente) || idCliente <= 0) {
+    alert("Cliente inválido. Selecione o cliente novamente.");
+    return;
+  }
+
+  clienteId = idCliente;
+}
 
     try {
       setCarregando(true);
 
       const resposta =
-        await api.post<VendaCriada>(
-          "/vendas",
-          {
-            clienteId,
+        await api.post<VendaCriada>("/vendas", {
+          clienteId,
+          itens: itensVenda,
+          formaPagamento,
 
-            itens: itensVenda,
+          valorRecebido:
+            formaPagamento === "dinheiro"
+              ? valorRecebidoNumero
+              : total,
 
-            formaPagamento,
+          total,
 
-            valorRecebido:
-              formaPagamento ===
-              "dinheiro"
-                ? valorRecebidoNumero
-                : total,
-
-            total,
-
-            vencimento:
-              formaPagamento ===
-              "fiado"
-                ? vencimentoISO
-                : undefined,
-          }
-        );
+          vencimento:
+            formaPagamento === "fiado"
+              ? vencimentoISO
+              : undefined,
+        });
 
       const venda =
         resposta.data;
@@ -817,7 +804,7 @@ if (
                   "1px solid #ccc",
                 cursor:
                   item.quantidade <=
-                  1
+                    1
                     ? "not-allowed"
                     : "pointer",
               }}
@@ -891,7 +878,7 @@ if (
           <strong>
             {dinheiro(
               item.quantidade *
-                item.precoUnitario
+              item.precoUnitario
             )}
           </strong>
         ),
@@ -1176,33 +1163,33 @@ if (
 
               {itens.length >
                 0 && (
-                <button
-                  type="button"
-                  onClick={
-                    limparVenda
-                  }
-                  style={{
-                    border: "none",
-                    background:
-                      "#fee2e2",
-                    color:
-                      "#b91c1c",
-                    padding:
-                      "9px 14px",
-                    borderRadius: 6,
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      600,
-                  }}
-                >
-                  Cancelar venda
-                </button>
-              )}
+                  <button
+                    type="button"
+                    onClick={
+                      limparVenda
+                    }
+                    style={{
+                      border: "none",
+                      background:
+                        "#fee2e2",
+                      color:
+                        "#b91c1c",
+                      padding:
+                        "9px 14px",
+                      borderRadius: 6,
+                      cursor:
+                        "pointer",
+                      fontWeight:
+                        600,
+                    }}
+                  >
+                    Cancelar venda
+                  </button>
+                )}
             </div>
 
             {itens.length ===
-            0 ? (
+              0 ? (
               <div
                 style={{
                   padding: 50,
@@ -1371,80 +1358,80 @@ if (
 
                 {clientes.length >
                   0 && (
-                  <div
-                    style={{
-                      marginTop: 10,
-                      border:
-                        "1px solid #ddd",
-                      borderRadius: 6,
-                      background:
-                        "#fff",
-                      overflow:
-                        "hidden",
-                    }}
-                  >
-                    {clientes.map(
-                      (
-                        cliente
-                      ) => (
-                        <button
-                          key={
-                            cliente.cliente_id
-                          }
-                          type="button"
-                          onClick={() =>
-                            selecionarCliente(
-                              cliente
-                            )
-                          }
-                          style={{
-                            display:
-                              "block",
-                            width:
-                              "100%",
-                            padding: 12,
-                            textAlign:
-                              "left",
-                            border:
-                              "none",
-                            borderBottom:
-                              "1px solid #eee",
-                            background:
-                              "#fff",
-                            cursor:
-                              "pointer",
-                          }}
-                        >
-                          <strong>
-                            {
-                              cliente.nome
+                    <div
+                      style={{
+                        marginTop: 10,
+                        border:
+                          "1px solid #ddd",
+                        borderRadius: 6,
+                        background:
+                          "#fff",
+                        overflow:
+                          "hidden",
+                      }}
+                    >
+                      {clientes.map(
+                        (
+                          cliente
+                        ) => (
+                          <button
+                            key={
+                              cliente.cliente_id
                             }
-                          </strong>
-
-                          {cliente.documento && (
-                            <div
-                              style={{
-                                marginTop: 3,
-                                fontSize: 12,
-                                color:
-                                  "#666",
-                              }}
-                            >
+                            type="button"
+                            onClick={() =>
+                              selecionarCliente(
+                                cliente
+                              )
+                            }
+                            style={{
+                              display:
+                                "block",
+                              width:
+                                "100%",
+                              padding: 12,
+                              textAlign:
+                                "left",
+                              border:
+                                "none",
+                              borderBottom:
+                                "1px solid #eee",
+                              background:
+                                "#fff",
+                              cursor:
+                                "pointer",
+                            }}
+                          >
+                            <strong>
                               {
-                                cliente.documento
+                                cliente.nome
                               }
-                            </div>
-                          )}
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
+                            </strong>
+
+                            {cliente.documento && (
+                              <div
+                                style={{
+                                  marginTop: 3,
+                                  fontSize: 12,
+                                  color:
+                                    "#666",
+                                }}
+                              >
+                                {
+                                  cliente.documento
+                                }
+                              </div>
+                            )}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
 
                 {clienteBusca.trim() &&
                   !buscandoCliente &&
                   clientes.length ===
-                    0 && (
+                  0 && (
                     <p
                       style={{
                         marginBottom: 0,
@@ -1594,12 +1581,12 @@ if (
                     borderRadius: 6,
                     border:
                       formaPagamento ===
-                      valor
+                        valor
                         ? "2px solid #2563eb"
                         : "1px solid #ccc",
                     background:
                       formaPagamento ===
-                      valor
+                        valor
                         ? "#dbeafe"
                         : "#fff",
                     cursor:
@@ -1616,65 +1603,115 @@ if (
 
           {formaPagamento ===
             "dinheiro" && (
-            <div
-              style={{
-                marginTop: 18,
-              }}
-            >
-              <Input
-                label="Valor recebido"
-                valor={
-                  valorRecebido
-                }
-                aoAlterar={
-                  setValorRecebido
-                }
-                placeholder="Ex.: 30,00"
-              />
+              <div
+                style={{
+                  marginTop: 18,
+                }}
+              >
+                <Input
+                  label="Valor recebido"
+                  valor={
+                    valorRecebido
+                  }
+                  aoAlterar={
+                    setValorRecebido
+                  }
+                  placeholder="Ex.: 30,00"
+                />
 
-              {valorRecebidoNumero >
-                total &&
-                total > 0 && (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      padding: 12,
-                      borderRadius: 6,
-                      background:
-                        "#dcfce7",
-                      border:
-                        "1px solid #86efac",
-                    }}
-                  >
-                    <span>
-                      Troco
-                    </span>
-
-                    <strong
+                {valorRecebidoNumero >
+                  total &&
+                  total > 0 && (
+                    <div
                       style={{
-                        display:
-                          "block",
-                        fontSize: 22,
-                        marginTop: 4,
-                        color:
-                          "#166534",
+                        marginTop: 12,
+                        padding: 12,
+                        borderRadius: 6,
+                        background:
+                          "#dcfce7",
+                        border:
+                          "1px solid #86efac",
                       }}
                     >
-                      {dinheiro(
-                        troco
-                      )}
-                    </strong>
-                  </div>
-                )}
+                      <span>
+                        Troco
+                      </span>
 
-              {valorRecebidoNumero >
-                0 &&
-                valorRecebidoNumero <
+                      <strong
+                        style={{
+                          display:
+                            "block",
+                          fontSize: 22,
+                          marginTop: 4,
+                          color:
+                            "#166534",
+                        }}
+                      >
+                        {dinheiro(
+                          troco
+                        )}
+                      </strong>
+                    </div>
+                  )}
+
+                {valorRecebidoNumero >
+                  0 &&
+                  valorRecebidoNumero <
                   total && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: 12,
+                        borderRadius: 6,
+                        background:
+                          "#fee2e2",
+                        border:
+                          "1px solid #fecaca",
+                        color:
+                          "#b91c1c",
+                      }}
+                    >
+                      Falta{" "}
+                      <strong>
+                        {dinheiro(
+                          total -
+                          valorRecebidoNumero
+                        )}
+                      </strong>
+                    </div>
+                  )}
+              </div>
+            )}
+
+          {formaPagamento ===
+            "fiado" && (
+              <div
+                style={{
+                  marginTop: 18,
+                  padding: 14,
+                  borderRadius: 8,
+                  border:
+                    "1px solid #fde68a",
+                  background:
+                    "#fffbeb",
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 12,
+                    fontSize: 13,
+                    color: "#92400e",
+                  }}
+                >
+                  A venda será registrada
+                  como conta a receber.
+                </div>
+
+                {!clienteSelecionado && (
                   <div
                     style={{
-                      marginTop: 12,
-                      padding: 12,
+                      marginBottom: 12,
+                      padding: 10,
                       borderRadius: 6,
                       background:
                         "#fee2e2",
@@ -1682,90 +1719,40 @@ if (
                         "1px solid #fecaca",
                       color:
                         "#b91c1c",
+                      fontSize: 13,
                     }}
                   >
-                    Falta{" "}
-                    <strong>
-                      {dinheiro(
-                        total -
-                          valorRecebidoNumero
-                      )}
-                    </strong>
+                    Selecione um cliente
+                    para realizar a venda
+                    fiado.
                   </div>
                 )}
-            </div>
-          )}
 
-          {formaPagamento ===
-            "fiado" && (
-            <div
-              style={{
-                marginTop: 18,
-                padding: 14,
-                borderRadius: 8,
-                border:
-                  "1px solid #fde68a",
-                background:
-                  "#fffbeb",
-              }}
-            >
-              <div
-                style={{
-                  marginBottom: 12,
-                  fontSize: 13,
-                  color: "#92400e",
-                }}
-              >
-                A venda será registrada
-                como conta a receber.
-              </div>
+                <Input
+                  label="Data de vencimento"
+                  valor={vencimento}
+                  aoAlterar={(valor) =>
+                    setVencimento(
+                      formatarDataDigitada(
+                        valor
+                      )
+                    )
+                  }
+                  placeholder="DD/MM/AAAA"
+                />
 
-              {!clienteSelecionado && (
                 <div
                   style={{
-                    marginBottom: 12,
-                    padding: 10,
-                    borderRadius: 6,
-                    background:
-                      "#fee2e2",
-                    border:
-                      "1px solid #fecaca",
-                    color:
-                      "#b91c1c",
-                    fontSize: 13,
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: "#666",
                   }}
                 >
-                  Selecione um cliente
-                  para realizar a venda
-                  fiado.
+                  Digite a data no formato
+                  DD/MM/AAAA.
                 </div>
-              )}
-
-              <Input
-                label="Data de vencimento"
-                valor={vencimento}
-                aoAlterar={(valor) =>
-                  setVencimento(
-                    formatarDataDigitada(
-                      valor
-                    )
-                  )
-                }
-                placeholder="DD/MM/AAAA"
-              />
-
-              <div
-                style={{
-                  marginTop: 8,
-                  fontSize: 12,
-                  color: "#666",
-                }}
-              >
-                Digite a data no formato
-                DD/MM/AAAA.
               </div>
-            </div>
-          )}
+            )}
 
           <div
             style={{
@@ -1955,7 +1942,7 @@ if (
                     <strong>
                       {dinheiro(
                         item.quantidade *
-                          item.precoUnitario
+                        item.precoUnitario
                       )}
                     </strong>
                   </div>
@@ -2012,72 +1999,72 @@ if (
 
               {vendaFinalizada.formaPagamento ===
                 "dinheiro" && (
-                <>
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      justifyContent:
-                        "space-between",
-                      marginTop: 6,
-                      fontSize: 14,
-                    }}
-                  >
-                    <span>
-                      Recebido
-                    </span>
+                  <>
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "space-between",
+                        marginTop: 6,
+                        fontSize: 14,
+                      }}
+                    >
+                      <span>
+                        Recebido
+                      </span>
 
-                    <strong>
-                      {dinheiro(
-                        valorRecebidoNumero
-                      )}
-                    </strong>
-                  </div>
+                      <strong>
+                        {dinheiro(
+                          valorRecebidoNumero
+                        )}
+                      </strong>
+                    </div>
 
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      justifyContent:
-                        "space-between",
-                      marginTop: 6,
-                      fontSize: 14,
-                    }}
-                  >
-                    <span>
-                      Troco
-                    </span>
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "space-between",
+                        marginTop: 6,
+                        fontSize: 14,
+                      }}
+                    >
+                      <span>
+                        Troco
+                      </span>
 
-                    <strong>
-                      {dinheiro(
-                        troco
-                      )}
-                    </strong>
-                  </div>
-                </>
-              )}
+                      <strong>
+                        {dinheiro(
+                          troco
+                        )}
+                      </strong>
+                    </div>
+                  </>
+                )}
 
               {vendaFinalizada.formaPagamento ===
                 "fiado" && (
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    justifyContent:
-                      "space-between",
-                    marginTop: 6,
-                    fontSize: 14,
-                  }}
-                >
-                  <span>
-                    Vencimento
-                  </span>
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      marginTop: 6,
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>
+                      Vencimento
+                    </span>
 
-                  <strong>
-                    {vencimento}
-                  </strong>
-                </div>
-              )}
+                    <strong>
+                      {vencimento}
+                    </strong>
+                  </div>
+                )}
             </div>
 
             <div
