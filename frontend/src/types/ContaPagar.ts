@@ -3,8 +3,8 @@ export interface ContaPagar {
   fornecedor_id?: number | null;
   descricao: string;
   valor: number;
+  data_emissao: string;
   vencimento: string;
-  data_emissao?: string;
   status: "aberta" | "vencida" | "parcial" | "paga" | "cancelada";
   criado_em?: string;
   atualizado_em?: string;

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 
 import Tabela, {
@@ -72,6 +73,10 @@ const ContasPagar: React.FC = () => {
   const [contaSelecionada, setContaSelecionada] =
     useState<ContaPagar | null>(null);
 
+  // =========================
+  // CAMPOS DO FORMULÁRIO
+  // =========================
+
   const [fornecedorId, setFornecedorId] =
     useState("");
 
@@ -100,6 +105,16 @@ const ContasPagar: React.FC = () => {
   const [observacao, setObservacao] =
     useState("");
 
+  // =========================
+  // EDIÇÃO
+  // =========================
+
+  const [editando, setEditando] =
+    useState(false);
+
+  const [contaEditandoId, setContaEditandoId] =
+    useState<number | null>(null);
+
   function obterMensagemErro(
     erro: unknown,
     mensagemPadrao: string
@@ -120,6 +135,10 @@ const ContasPagar: React.FC = () => {
 
     return mensagemPadrao;
   }
+
+  // =========================
+  // CARREGAR
+  // =========================
 
   async function carregar() {
     try {
@@ -165,7 +184,14 @@ const ContasPagar: React.FC = () => {
     void carregar();
   }, []);
 
+  // =========================
+  // NOVA CONTA
+  // =========================
+
   function abrirModal() {
+    setEditando(false);
+    setContaEditandoId(null);
+
     setFornecedorId("");
     setDescricao("");
     setValor("");
@@ -177,6 +203,55 @@ const ContasPagar: React.FC = () => {
     );
 
     setVencimento("");
+
+    setModalAberto(true);
+  }
+
+  // =========================
+  // EDITAR CONTA
+  // =========================
+
+  function abrirModalEdicao(
+    conta: ContaPagar
+  ) {
+    setEditando(true);
+
+    setContaEditandoId(
+      conta.conta_pagar_id
+    );
+
+    setFornecedorId(
+      conta.fornecedor_id
+        ? String(conta.fornecedor_id)
+        : ""
+    );
+
+    setDescricao(
+      conta.descricao ?? ""
+    );
+
+    setValor(
+      Number(conta.valor ?? 0).toFixed(2)
+    );
+
+    setDataEmissao(
+      conta.data_emissao
+        ? String(conta.data_emissao).substring(
+            0,
+            10
+          )
+        : ""
+    );
+
+    setVencimento(
+      conta.vencimento
+        ? String(conta.vencimento).substring(
+            0,
+            10
+          )
+        : ""
+    );
+
     setModalAberto(true);
   }
 
@@ -186,7 +261,13 @@ const ContasPagar: React.FC = () => {
     }
 
     setModalAberto(false);
+    setEditando(false);
+    setContaEditandoId(null);
   }
+
+  // =========================
+  // SALVAR / EDITAR
+  // =========================
 
   async function salvarConta() {
     if (!descricao.trim()) {
@@ -210,6 +291,13 @@ const ContasPagar: React.FC = () => {
       return;
     }
 
+    if (!dataEmissao) {
+      window.alert(
+        "A data de emissão é obrigatória."
+      );
+      return;
+    }
+
     if (!vencimento) {
       window.alert(
         "O vencimento é obrigatório."
@@ -220,39 +308,68 @@ const ContasPagar: React.FC = () => {
     try {
       setSalvando(true);
 
-      await api.post("/contas-pagar", {
+      const dados = {
         fornecedorId: fornecedorId
           ? Number(fornecedorId)
           : null,
+
         descricao: descricao.trim(),
+
         valor: valorNumerico,
+
         dataEmissao,
+
         vencimento,
-      });
+      };
+
+      if (
+        editando &&
+        contaEditandoId
+      ) {
+        await api.put(
+          `/contas-pagar/${contaEditandoId}`,
+          dados
+        );
+      } else {
+        await api.post(
+          "/contas-pagar",
+          dados
+        );
+      }
 
       setModalAberto(false);
+      setEditando(false);
+      setContaEditandoId(null);
 
       await carregar();
 
       window.alert(
-        "Conta a pagar cadastrada com sucesso."
+        editando
+          ? "Conta atualizada com sucesso."
+          : "Conta a pagar cadastrada com sucesso."
       );
     } catch (erro: unknown) {
       console.error(
-        "Erro ao cadastrar conta:",
+        "Erro ao salvar conta:",
         erro
       );
 
       window.alert(
         obterMensagemErro(
           erro,
-          "Não foi possível cadastrar a conta."
+          editando
+            ? "Não foi possível atualizar a conta."
+            : "Não foi possível cadastrar a conta."
         )
       );
     } finally {
       setSalvando(false);
     }
   }
+
+  // =========================
+  // FORMATAÇÕES
+  // =========================
 
   function formatarValor(valor: number) {
     return Number(valor).toLocaleString(
@@ -270,7 +387,7 @@ const ContasPagar: React.FC = () => {
     }
 
     return new Date(
-      `${data}T00:00:00`
+      `${String(data).substring(0, 10)}T00:00:00`
     ).toLocaleDateString("pt-BR");
   }
 
@@ -321,6 +438,10 @@ const ContasPagar: React.FC = () => {
       statusAtual === "parcial"
     );
   }
+
+  // =========================
+  // PAGAMENTO
+  // =========================
 
   function abrirModalPagamento(
     conta: ContaPagar
@@ -468,6 +589,10 @@ const ContasPagar: React.FC = () => {
     }
   }
 
+  // =========================
+  // CANCELAR
+  // =========================
+
   async function cancelarConta(
     conta: ContaPagar
   ) {
@@ -515,6 +640,10 @@ const ContasPagar: React.FC = () => {
     }
   }
 
+  // =========================
+  // TABELA
+  // =========================
+
   const colunas: ColunaTabela<ContaPagar>[] =
     [
       {
@@ -523,10 +652,10 @@ const ContasPagar: React.FC = () => {
       },
 
       {
-        chave: "valor",
-        titulo: "Valor",
+        chave: "data_emissao",
+        titulo: "Início da compra",
         render: (valor) =>
-          formatarValor(Number(valor)),
+          formatarData(String(valor)),
       },
 
       {
@@ -534,6 +663,13 @@ const ContasPagar: React.FC = () => {
         titulo: "Vencimento",
         render: (valor) =>
           formatarData(String(valor)),
+      },
+
+      {
+        chave: "valor",
+        titulo: "Valor",
+        render: (valor) =>
+          formatarValor(Number(valor)),
       },
 
       {
@@ -570,8 +706,26 @@ const ContasPagar: React.FC = () => {
             style={{
               display: "flex",
               gap: 8,
+              flexWrap: "wrap",
             }}
           >
+            {obterStatus(
+              conta.status
+            ) !== "cancelada" &&
+              obterStatus(
+                conta.status
+              ) !== "pago" && (
+                <Botao
+                  texto="Editar"
+                  variante="secundario"
+                  onClick={() =>
+                    abrirModalEdicao(
+                      conta
+                    )
+                  }
+                />
+              )}
+
             {podePagar(
               conta.status
             ) && (
@@ -655,6 +809,10 @@ const ContasPagar: React.FC = () => {
         }
       />
 
+      {/* =========================
+          MODAL NOVA CONTA / EDIÇÃO
+          ========================= */}
+
       {modalAberto && (
         <div
           style={{
@@ -680,7 +838,9 @@ const ContasPagar: React.FC = () => {
             }}
           >
             <h3>
-              Nova Conta a Pagar
+              {editando
+                ? "Editar Conta a Pagar"
+                : "Nova Conta a Pagar"}
             </h3>
 
             <div
@@ -772,7 +932,7 @@ const ContasPagar: React.FC = () => {
               </label>
 
               <label>
-                Data de emissão
+                Início da compra *
 
                 <input
                   type="date"
@@ -830,6 +990,8 @@ const ContasPagar: React.FC = () => {
                   texto={
                     salvando
                       ? "Salvando..."
+                      : editando
+                      ? "Salvar alterações"
                       : "Salvar"
                   }
                   variante="primario"
@@ -842,6 +1004,10 @@ const ContasPagar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* =========================
+          MODAL PAGAMENTO
+          ========================= */}
 
       {modalPagamentoAberto &&
         contaSelecionada && (
