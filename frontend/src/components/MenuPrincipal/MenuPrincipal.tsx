@@ -8,6 +8,11 @@ interface ItemMenu {
   icone?: string;
 }
 
+interface MenuPrincipalProps {
+  aberto?: boolean;
+  aoAlternar?: () => void;
+}
+
 const itensMenu: ItemMenu[] = [
   { rota: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
   { rota: "/pdv", rotulo: "PDV", icone: "🧾" },
@@ -23,25 +28,46 @@ const itensMenu: ItemMenu[] = [
   { rota: "/relatorios", rotulo: "Relatórios", icone: "📈" },
 ];
 
-/**
- * MenuPrincipal - lista de navegação principal, usada dentro do Sidebar.
- */
-const MenuPrincipal: React.FC = () => {
+const MenuPrincipal: React.FC<MenuPrincipalProps> = ({
+  aberto = false,
+  aoAlternar,
+}) => {
   return (
-    <nav className="menu-principal">
-      {itensMenu.map((item) => (
-        <NavLink
-          key={item.rota}
-          to={item.rota}
-          className={({ isActive }) =>
-            `menu-principal__item ${isActive ? "menu-principal__item--ativo" : ""}`
-          }
+    <div className="menu-principal">
+      <div className="menu-principal__cabecalho">
+        <span className="menu-principal__titulo">MenuPrincipal</span>
+
+        <button
+          type="button"
+          className="menu-principal__botao"
+          onClick={aoAlternar}
+          aria-label={aberto ? "Fechar menu" : "Abrir menu"}
         >
-          <span className="menu-principal__icone">{item.icone}</span>
-          <span>{item.rotulo}</span>
-        </NavLink>
-      ))}
-    </nav>
+          {aberto ? "✕" : "☰"}
+        </button>
+      </div>
+
+      <nav
+        className={`menu-principal__lista ${
+          aberto ? "menu-principal__lista--aberta" : ""
+        }`}
+      >
+        {itensMenu.map((item) => (
+          <NavLink
+            key={item.rota}
+            to={item.rota}
+            className={({ isActive }) =>
+              `menu-principal__item ${
+                isActive ? "menu-principal__item--ativo" : ""
+              }`
+            }
+          >
+            <span className="menu-principal__icone">{item.icone}</span>
+            <span>{item.rotulo}</span>
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
 };
 

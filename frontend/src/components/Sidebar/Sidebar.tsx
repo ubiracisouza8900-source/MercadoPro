@@ -15,18 +15,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     <aside className={`sidebar ${aberto ? "sidebar--aberto" : ""}`}>
       <div className="sidebar__logo">
         <span>MercadoPro</span>
-
-        <button
-          type="button"
-          className="sidebar__menu-botao"
-          onClick={aoAlternar}
-          aria-label={aberto ? "Fechar menu" : "Abrir menu"}
-        >
-          {aberto ? "✕" : "☰"}
-        </button>
       </div>
 
-      <MenuPrincipal />
+      <MenuPrincipal
+        aberto={aberto}
+        aoAlternar={aoAlternar}
+      />
     </aside>
   );
 };
