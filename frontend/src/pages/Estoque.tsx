@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import Tabela, { ColunaTabela } from "../components/Tabela";
 import { Produto } from "../types/Produto";
 import api from "../services/api";
+import styles from "./Estoque.module.css";
 
 const Estoque: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -25,10 +27,11 @@ const Estoque: React.FC = () => {
       titulo: "Quantidade",
       render: (v) => (
         <span
-          style={{
-            color: Number(v) <= 5 ? "#e5484d" : "#1c1f26",
-            fontWeight: 600,
-          }}
+          className={
+            Number(v) <= 5
+              ? styles.quantidadeBaixa
+              : styles.quantidadeNormal
+          }
         >
           {v}
         </span>
@@ -37,31 +40,24 @@ const Estoque: React.FC = () => {
   ];
 
   return (
-    <main style={{ padding: 24 }}>
-      <h2>Estoque</h2>
+    <main className={styles.pagina}>
+      <h2 className={styles.titulo}>Estoque</h2>
 
       <input
         type="text"
+        className={styles.pesquisa}
         placeholder="Pesquisar produto..."
         value={pesquisa}
         onChange={(e) => setPesquisa(e.target.value)}
-        style={{
-          width: "100%",
-          maxWidth: 400,
-          padding: "10px 12px",
-          marginBottom: 20,
-          border: "1px solid #d1d5db",
-          borderRadius: 6,
-          fontSize: 14,
-          outline: "none",
-        }}
       />
 
-      <Tabela
-        colunas={colunas}
-        dados={produtosFiltrados}
-        chaveLinha={(p) => String(p.produtoId)}
-      />
+      <div className={styles.tabelaResponsiva}>
+        <Tabela
+          colunas={colunas}
+          dados={produtosFiltrados}
+          chaveLinha={(p) => String(p.produtoId)}
+        />
+      </div>
     </main>
   );
 };

@@ -1,0 +1,116 @@
+
+.loginContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24px;
+  background: #f3f4f6;
+}
+
+.loginCaixa {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+  padding: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+}
+
+.titulo {
+  margin: 0 0 8px;
+  color: #1c1f26;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.subtitulo {
+  margin: 0 0 24px;
+  color: #6b7280;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.lembrete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 18px;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.lembrete input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.acaoLogin {
+  width: 100%;
+}
+
+/* Tablets e notebooks menores */
+@media (max-width: 768px) {
+  .loginContainer {
+    padding: 20px;
+  }
+
+  .loginCaixa {
+    max-width: 400px;
+    padding: 28px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .loginContainer {
+    align-items: center;
+    padding: 16px;
+  }
+
+  .loginCaixa {
+    padding: 24px 20px;
+    border-radius: 10px;
+  }
+
+  .titulo {
+    font-size: 1.55rem;
+  }
+
+  .subtitulo {
+    margin-bottom: 20px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1600px) {
+  .loginCaixa {
+    max-width: 460px;
+    padding: 40px;
+  }
+
+  .titulo {
+    font-size: 2rem;
+  }
+
+  .subtitulo {
+    font-size: 1rem;
+  }
+}

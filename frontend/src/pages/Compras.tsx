@@ -3,6 +3,8 @@ import Tabela, { ColunaTabela } from "../components/Tabela";
 import Botao from "../components/Botao";
 import api from "../services/api";
 
+import styles from "./Compras.module.css";
+
 interface Fornecedor {
   fornecedor_id: number;
   nome: string;
@@ -28,51 +30,29 @@ interface Compra {
 const Compras: React.FC = () => {
   const [compras, setCompras] = useState<Compra[]>([]);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
-
-  const [mostrarFormulario, setMostrarFormulario] =
-    useState(false);
-
-  const [modoEdicao, setModoEdicao] =
-    useState(false);
-
-  const [compraEditando, setCompraEditando] =
-    useState<number | null>(null);
-
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [compraEditando, setCompraEditando] = useState<number | null>(null);
   const [busca, setBusca] = useState("");
-
-  const [fornecedorId, setFornecedorId] =
-    useState("");
-
-  const [valor, setValor] =
-    useState("");
-
-  const [dataCompra, setDataCompra] =
-    useState("");
-
-  const [dataVencimento, setDataVencimento] =
-    useState("");
-
-  const [boleto, setBoleto] =
-    useState<File | null>(null);
-
+  const [fornecedorId, setFornecedorId] = useState("");
+  const [valor, setValor] = useState("");
+  const [dataCompra, setDataCompra] = useState("");
+  const [dataVencimento, setDataVencimento] = useState("");
+  const [boleto, setBoleto] = useState<File | null>(null);
   const [fornecedorSelecionado, setFornecedorSelecionado] =
     useState<Fornecedor | null>(null);
 
   const carregarDados = async () => {
     try {
-      const [resCompras, resFornecedores] =
-        await Promise.all([
-          api.get<Compra[]>("/compras"),
-          api.get<Fornecedor[]>("/fornecedores"),
-        ]);
+      const [resCompras, resFornecedores] = await Promise.all([
+        api.get<Compra[]>("/compras"),
+        api.get<Fornecedor[]>("/fornecedores"),
+      ]);
 
       setCompras(resCompras.data);
       setFornecedores(resFornecedores.data);
     } catch (erro) {
-      console.error(
-        "Erro ao carregar compras:",
-        erro
-      );
+      console.error("Erro ao carregar compras:", erro);
     }
   };
 
@@ -80,20 +60,14 @@ const Compras: React.FC = () => {
     carregarDados();
   }, []);
 
-  const selecionarFornecedor = (
-    id: string
-  ) => {
+  const selecionarFornecedor = (id: string) => {
     setFornecedorId(id);
 
-    const fornecedor =
-      fornecedores.find(
-        (item) =>
-          item.fornecedor_id === Number(id)
-      );
-
-    setFornecedorSelecionado(
-      fornecedor ?? null
+    const fornecedor = fornecedores.find(
+      (item) => item.fornecedor_id === Number(id)
     );
+
+    setFornecedorSelecionado(fornecedor ?? null);
   };
 
   const limparFormulario = () => {
@@ -112,48 +86,27 @@ const Compras: React.FC = () => {
     setMostrarFormulario(true);
   };
 
-  const abrirEdicao = (
-    compra: Compra
-  ) => {
+  const abrirEdicao = (compra: Compra) => {
     setModoEdicao(true);
-    setCompraEditando(
-      compra.compra_id
+    setCompraEditando(compra.compra_id);
+    setFornecedorId(String(compra.fornecedor_id));
+
+    const fornecedor = fornecedores.find(
+      (item) => item.fornecedor_id === compra.fornecedor_id
     );
 
-    setFornecedorId(
-      String(compra.fornecedor_id)
-    );
-
-    const fornecedor =
-      fornecedores.find(
-        (item) =>
-          item.fornecedor_id ===
-          compra.fornecedor_id
-      );
-
-    setFornecedorSelecionado(
-      fornecedor ?? null
-    );
-
-    setValor(
-      String(compra.total)
-    );
+    setFornecedorSelecionado(fornecedor ?? null);
+    setValor(String(compra.total));
 
     setDataCompra(
       compra.data_compra
-        ? compra.data_compra.substring(
-            0,
-            10
-          )
+        ? compra.data_compra.substring(0, 10)
         : ""
     );
 
     setDataVencimento(
       compra.data_vencimento
-        ? compra.data_vencimento.substring(
-            0,
-            10
-          )
+        ? compra.data_vencimento.substring(0, 10)
         : ""
     );
 
@@ -166,123 +119,64 @@ const Compras: React.FC = () => {
     setMostrarFormulario(false);
   };
 
-  const salvarCompra = async (
-    evento: React.FormEvent
-  ) => {
+  const salvarCompra = async (evento: React.FormEvent) => {
     evento.preventDefault();
 
     if (!fornecedorId) {
-      alert(
-        "Selecione um fornecedor."
-      );
+      alert("Selecione um fornecedor.");
       return;
     }
 
     if (!valor) {
-      alert(
-        "Informe o valor da compra."
-      );
+      alert("Informe o valor da compra.");
       return;
     }
 
     if (!dataCompra) {
-      alert(
-        "Informe a data da compra."
-      );
+      alert("Informe a data da compra.");
       return;
     }
 
     if (!dataVencimento) {
-      alert(
-        "Informe a data de vencimento."
-      );
+      alert("Informe a data de vencimento.");
       return;
     }
 
-    if (
-      !modoEdicao &&
-      !boleto
-    ) {
-      alert(
-        "Selecione o boleto em PDF."
-      );
+    if (!modoEdicao && !boleto) {
+      alert("Selecione o boleto em PDF.");
       return;
     }
 
-    if (
-      boleto &&
-      boleto.type !==
-        "application/pdf"
-    ) {
-      alert(
-        "O boleto precisa estar no formato PDF."
-      );
+    if (boleto && boleto.type !== "application/pdf") {
+      alert("O boleto precisa estar no formato PDF.");
       return;
     }
 
     try {
-      const formulario =
-        new FormData();
+      const formulario = new FormData();
 
-      formulario.append(
-        "fornecedorId",
-        fornecedorId
-      );
-
-      formulario.append(
-        "total",
-        valor
-      );
-
-      formulario.append(
-        "dataCompra",
-        dataCompra
-      );
-
-      formulario.append(
-        "dataVencimento",
-        dataVencimento
-      );
+      formulario.append("fornecedorId", fornecedorId);
+      formulario.append("total", valor);
+      formulario.append("dataCompra", dataCompra);
+      formulario.append("dataVencimento", dataVencimento);
 
       if (boleto) {
-        formulario.append(
-          "boleto",
-          boleto
-        );
+        formulario.append("boleto", boleto);
       }
 
-      if (
-        modoEdicao &&
-        compraEditando
-      ) {
-        await api.put(
-          `/compras/${compraEditando}`,
-          formulario
-        );
-
-        alert(
-          "Compra atualizada com sucesso!"
-        );
+      if (modoEdicao && compraEditando) {
+        await api.put(`/compras/${compraEditando}`, formulario);
+        alert("Compra atualizada com sucesso!");
       } else {
-        await api.post(
-          "/compras",
-          formulario
-        );
-
-        alert(
-          "Compra cadastrada com sucesso!"
-        );
+        await api.post("/compras", formulario);
+        alert("Compra cadastrada com sucesso!");
       }
 
       limparFormulario();
       setMostrarFormulario(false);
-
       await carregarDados();
     } catch (erro) {
-      console.error(
-        "Erro ao salvar compra:",
-        erro
-      );
+      console.error("Erro ao salvar compra:", erro);
 
       alert(
         modoEdicao
@@ -292,105 +186,58 @@ const Compras: React.FC = () => {
     }
   };
 
-  const excluirCompra = async (
-    compraId: number
-  ) => {
-    const confirmar =
-      window.confirm(
-        "Tem certeza que deseja excluir esta compra?"
-      );
+  const excluirCompra = async (compraId: number) => {
+    const confirmar = window.confirm(
+      "Tem certeza que deseja excluir esta compra?"
+    );
 
     if (!confirmar) {
       return;
     }
 
     try {
-      await api.delete(
-        `/compras/${compraId}`
-      );
-
-      alert(
-        "Compra excluída com sucesso!"
-      );
-
+      await api.delete(`/compras/${compraId}`);
+      alert("Compra excluída com sucesso!");
       await carregarDados();
     } catch (erro) {
-      console.error(
-        "Erro ao excluir compra:",
-        erro
-      );
-
-      alert(
-        "Não foi possível excluir a compra."
-      );
+      console.error("Erro ao excluir compra:", erro);
+      alert("Não foi possível excluir a compra.");
     }
   };
 
-  const visualizarBoleto = async (
-    compraId: number
-  ) => {
+  const visualizarBoleto = async (compraId: number) => {
     try {
-      const resposta =
-        await api.get(
-          `/compras/${compraId}/boleto`,
-          {
-            responseType: "blob",
-          }
-        );
-
-      const arquivo =
-        new Blob(
-          [resposta.data],
-          {
-            type: "application/pdf",
-          }
-        );
-
-      const url =
-        window.URL.createObjectURL(
-          arquivo
-        );
-
-      window.open(
-        url,
-        "_blank"
+      const resposta = await api.get(
+        `/compras/${compraId}/boleto`,
+        {
+          responseType: "blob",
+        }
       );
+
+      const arquivo = new Blob([resposta.data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(arquivo);
+
+      window.open(url, "_blank");
 
       setTimeout(() => {
-        window.URL.revokeObjectURL(
-          url
-        );
+        window.URL.revokeObjectURL(url);
       }, 60000);
     } catch (erro) {
-      console.error(
-        "Erro ao visualizar boleto:",
-        erro
-      );
-
-      alert(
-        "Não foi possível abrir o PDF."
-      );
+      console.error("Erro ao visualizar boleto:", erro);
+      alert("Não foi possível abrir o PDF.");
     }
   };
 
-  const comprasFiltradas =
-    compras.filter((compra) => {
-      const nome =
-        compra.fornecedor_nome
-          ?.toLowerCase() ?? "";
+  const comprasFiltradas = compras.filter((compra) => {
+    const nome = compra.fornecedor_nome?.toLowerCase() ?? "";
+    const cnpj = compra.fornecedor_cnpj?.toLowerCase() ?? "";
+    const termo = busca.toLowerCase();
 
-      const cnpj =
-        compra.fornecedor_cnpj
-          ?.toLowerCase() ?? "";
-
-      const termo =
-        busca.toLowerCase();
-
-      return (
-        nome.includes(termo) ||
-        cnpj.includes(termo)
-      );
-    });
+    return nome.includes(termo) || cnpj.includes(termo);
+  });
 
   const colunas: ColunaTabela<Compra>[] = [
     {
@@ -404,30 +251,18 @@ const Compras: React.FC = () => {
     {
       chave: "total",
       titulo: "Valor",
-      render: (valor) =>
-        `R$ ${Number(valor).toFixed(2)}`,
+      render: (valor) => `R$ ${Number(valor).toFixed(2)}`,
     },
     {
       chave: "data_compra",
       titulo: "Data da Compra",
-      render: (valor) =>
-        new Date(
-          valor
-        ).toLocaleDateString(
-          "pt-BR"
-        ),
+      render: (valor) => new Date(valor).toLocaleDateString("pt-BR"),
     },
     {
       chave: "data_vencimento",
       titulo: "Vencimento",
       render: (valor) =>
-        valor
-          ? new Date(
-              valor
-            ).toLocaleDateString(
-              "pt-BR"
-            )
-          : "-",
+        valor ? new Date(valor).toLocaleDateString("pt-BR") : "-",
     },
     {
       chave: "boleto_arquivo",
@@ -436,11 +271,8 @@ const Compras: React.FC = () => {
         valor ? (
           <button
             type="button"
-            onClick={() =>
-              visualizarBoleto(
-                compra.compra_id
-              )
-            }
+            className={styles.botaoVisualizar}
+            onClick={() => visualizarBoleto(compra.compra_id)}
           >
             📄 Visualizar PDF
           </button>
@@ -452,29 +284,19 @@ const Compras: React.FC = () => {
       chave: "compra_id",
       titulo: "Ações",
       render: (_valor, compra) => (
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-          }}
-        >
+        <div className={styles.acoesTabela}>
           <button
             type="button"
-            onClick={() =>
-              abrirEdicao(compra)
-            }
+            className={styles.botaoEditar}
+            onClick={() => abrirEdicao(compra)}
           >
             ✏️ Editar
           </button>
 
           <button
             type="button"
-            onClick={() =>
-              excluirCompra(
-                compra.compra_id
-              )
-            }
+            className={styles.botaoExcluir}
+            onClick={() => excluirCompra(compra.compra_id)}
           >
             🗑️ Excluir
           </button>
@@ -484,88 +306,45 @@ const Compras: React.FC = () => {
   ];
 
   return (
-    <main style={{ padding: 24 }}>
+    <main className={styles.pagina}>
       {!mostrarFormulario && (
         <>
-          <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
+          <div className={styles.cabecalho}>
             <h2>Compras</h2>
 
             <Botao
               texto="Nova Compra"
-              onClick={
-                abrirNovaCompra
-              }
+              onClick={abrirNovaCompra}
             />
           </div>
 
-          <div
-            style={{
-              marginBottom: 20,
-            }}
-          >
+          <div className={styles.buscaContainer}>
             <input
               type="text"
               placeholder="Buscar por fornecedor ou CNPJ"
               value={busca}
-              onChange={(evento) =>
-                setBusca(
-                  evento.target.value
-                )
-              }
-              style={{
-                width: "100%",
-                maxWidth: 500,
-                padding: 10,
-                border:
-                  "1px solid #ccc",
-                borderRadius: 6,
-              }}
+              onChange={(evento) => setBusca(evento.target.value)}
+              className={styles.campoBusca}
             />
           </div>
 
-          <Tabela
-            colunas={colunas}
-            dados={comprasFiltradas}
-            chaveLinha={(compra) =>
-              String(
-                compra.compra_id
-              )
-            }
-          />
+          <div className={styles.tabelaResponsiva}>
+            <Tabela
+              colunas={colunas}
+              dados={comprasFiltradas}
+              chaveLinha={(compra) => String(compra.compra_id)}
+            />
+          </div>
         </>
       )}
 
       {mostrarFormulario && (
         <form
           onSubmit={salvarCompra}
-          style={{
-            maxWidth: 900,
-          }}
+          className={styles.formulario}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              alignItems: "center",
-              marginBottom: 24,
-            }}
-          >
-            <h2>
-              {modoEdicao
-                ? "Editar Compra"
-                : "Nova Compra"}
-            </h2>
+          <div className={styles.cabecalhoFormulario}>
+            <h2>{modoEdicao ? "Editar Compra" : "Nova Compra"}</h2>
 
             <Botao
               texto="Cancelar"
@@ -574,234 +353,113 @@ const Compras: React.FC = () => {
             />
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: 16,
-            }}
-          >
-            <div>
-              <label>
-                Fornecedor
-              </label>
+          <div className={styles.gradeCampos}>
+            <div className={styles.campo}>
+              <label>Fornecedor</label>
 
               <select
                 value={fornecedorId}
                 onChange={(evento) =>
-                  selecionarFornecedor(
-                    evento.target.value
-                  )
+                  selecionarFornecedor(evento.target.value)
                 }
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                }}
               >
-                <option value="">
-                  Selecione o fornecedor
-                </option>
+                <option value="">Selecione o fornecedor</option>
 
-                {fornecedores.map(
-                  (fornecedor) => (
-                    <option
-                      key={
-                        fornecedor.fornecedor_id
-                      }
-                      value={
-                        fornecedor.fornecedor_id
-                      }
-                    >
-                      {fornecedor.nome}
-                      {fornecedor.cnpj
-                        ? ` - ${fornecedor.cnpj}`
-                        : ""}
-                    </option>
-                  )
-                )}
+                {fornecedores.map((fornecedor) => (
+                  <option
+                    key={fornecedor.fornecedor_id}
+                    value={fornecedor.fornecedor_id}
+                  >
+                    {fornecedor.nome}
+                    {fornecedor.cnpj ? ` - ${fornecedor.cnpj}` : ""}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div>
+            <div className={styles.campo}>
               <label>CNPJ</label>
-
               <input
                 type="text"
-                value={
-                  fornecedorSelecionado
-                    ?.cnpj ?? ""
-                }
+                value={fornecedorSelecionado?.cnpj ?? ""}
                 readOnly
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                  background:
-                    "#f3f4f6",
-                }}
+                className={styles.campoSomenteLeitura}
               />
             </div>
 
-            <div>
-              <label>
-                Telefone
-              </label>
-
+            <div className={styles.campo}>
+              <label>Telefone</label>
               <input
                 type="text"
-                value={
-                  fornecedorSelecionado
-                    ?.telefone ?? ""
-                }
+                value={fornecedorSelecionado?.telefone ?? ""}
                 readOnly
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                  background:
-                    "#f3f4f6",
-                }}
+                className={styles.campoSomenteLeitura}
               />
             </div>
 
-            <div>
-              <label>
-                E-mail
-              </label>
-
+            <div className={styles.campo}>
+              <label>E-mail</label>
               <input
                 type="text"
-                value={
-                  fornecedorSelecionado
-                    ?.email ?? ""
-                }
+                value={fornecedorSelecionado?.email ?? ""}
                 readOnly
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                  background:
-                    "#f3f4f6",
-                }}
+                className={styles.campoSomenteLeitura}
               />
             </div>
 
-            <div>
-              <label>
-                Endereço
-              </label>
-
+            <div className={styles.campo}>
+              <label>Endereço</label>
               <input
                 type="text"
-                value={
-                  fornecedorSelecionado
-                    ?.endereco ?? ""
-                }
+                value={fornecedorSelecionado?.endereco ?? ""}
                 readOnly
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                  background:
-                    "#f3f4f6",
-                }}
+                className={styles.campoSomenteLeitura}
               />
             </div>
 
-            <div>
-              <label>
-                Produtos fornecidos
-              </label>
-
+            <div className={styles.campo}>
+              <label>Produtos fornecidos</label>
               <input
                 type="text"
-                value={
-                  fornecedorSelecionado
-                    ?.produtos_fornecidos ??
-                  ""
-                }
+                value={fornecedorSelecionado?.produtos_fornecidos ?? ""}
                 readOnly
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                  background:
-                    "#f3f4f6",
-                }}
+                className={styles.campoSomenteLeitura}
               />
             </div>
 
-            <div>
-              <label>
-                Valor da compra
-              </label>
-
+            <div className={styles.campo}>
+              <label>Valor da compra</label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={valor}
-                onChange={(evento) =>
-                  setValor(
-                    evento.target.value
-                  )
-                }
+                onChange={(evento) => setValor(evento.target.value)}
                 placeholder="0,00"
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                }}
               />
             </div>
 
-            <div>
-              <label>
-                Data da compra
-              </label>
-
+            <div className={styles.campo}>
+              <label>Data da compra</label>
               <input
                 type="date"
                 value={dataCompra}
-                onChange={(evento) =>
-                  setDataCompra(
-                    evento.target.value
-                  )
-                }
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                }}
+                onChange={(evento) => setDataCompra(evento.target.value)}
               />
             </div>
 
-            <div>
-              <label>
-                Data de vencimento
-              </label>
-
+            <div className={styles.campo}>
+              <label>Data de vencimento</label>
               <input
                 type="date"
-                value={
-                  dataVencimento
-                }
+                value={dataVencimento}
                 onChange={(evento) =>
-                  setDataVencimento(
-                    evento.target.value
-                  )
+                  setDataVencimento(evento.target.value)
                 }
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  marginTop: 6,
-                }}
               />
             </div>
 
-            <div>
+            <div className={styles.campo}>
               <label>
                 {modoEdicao
                   ? "Novo boleto em PDF (opcional)"
@@ -812,47 +470,23 @@ const Compras: React.FC = () => {
                 type="file"
                 accept="application/pdf,.pdf"
                 onChange={(evento) => {
-                  const arquivo =
-                    evento.target
-                      .files?.[0] ??
-                    null;
-
+                  const arquivo = evento.target.files?.[0] ?? null;
                   setBoleto(arquivo);
                 }}
-                style={{
-                  width: "100%",
-                  marginTop: 10,
-                }}
+                className={styles.campoArquivo}
               />
 
               {modoEdicao && (
-                <small
-                  style={{
-                    display:
-                      "block",
-                    marginTop: 8,
-                    color: "#666",
-                  }}
-                >
-                  Se não selecionar
-                  outro PDF, o boleto
-                  atual será mantido.
+                <small className={styles.observacaoBoleto}>
+                  Se não selecionar outro PDF, o boleto atual será mantido.
                 </small>
               )}
             </div>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              marginTop: 28,
-            }}
-          >
-            <button type="submit">
-              {modoEdicao
-                ? "Salvar Alterações"
-                : "Salvar Compra"}
+          <div className={styles.acoesFormulario}>
+            <button type="submit" className={styles.botaoSalvar}>
+              {modoEdicao ? "Salvar Alterações" : "Salvar Compra"}
             </button>
 
             <Botao

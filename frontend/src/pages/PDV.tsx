@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState } from "react";
+import styles from "./PDV.module.css";
 
 import Input from "../components/Input";
 import Botao from "../components/Botao";
@@ -51,76 +53,45 @@ const PDV: React.FC = () => {
   const [codigo, setCodigo] = useState("");
   const [quantidade, setQuantidade] = useState("1");
   const [itens, setItens] = useState<ItemVenda[]>([]);
-
   const [formaPagamento, setFormaPagamento] =
     useState<FormaPagamento>("dinheiro");
-
-  const [valorRecebido, setValorRecebido] =
-    useState("");
-
-  const [vencimento, setVencimento] =
-    useState("");
-
-  const [carregando, setCarregando] =
-    useState(false);
-
+  const [valorRecebido, setValorRecebido] = useState("");
+  const [vencimento, setVencimento] = useState("");
+  const [carregando, setCarregando] = useState(false);
   const [ultimoProduto, setUltimoProduto] =
     useState<Produto | null>(null);
-
   const [vendaFinalizada, setVendaFinalizada] =
     useState<VendaCriada | null>(null);
-
-  const [clienteBusca, setClienteBusca] =
-    useState("");
-
-  const [clientes, setClientes] =
-    useState<Cliente[]>([]);
-
+  const [clienteBusca, setClienteBusca] = useState("");
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteSelecionado, setClienteSelecionado] =
     useState<Cliente | null>(null);
-
-  const [buscandoCliente, setBuscandoCliente] =
-    useState(false);
+  const [buscandoCliente, setBuscandoCliente] = useState(false);
 
   const total = itens.reduce(
-    (soma, item) =>
-      soma +
-      item.quantidade *
-      item.precoUnitario,
+    (soma, item) => soma + item.quantidade * item.precoUnitario,
     0
   );
 
   const quantidadeTotal = itens.reduce(
-    (soma, item) =>
-      soma + item.quantidade,
+    (soma, item) => soma + item.quantidade,
     0
   );
 
   const valorRecebidoNumero =
-    Number(
-      valorRecebido.replace(",", ".")
-    ) || 0;
+    Number(valorRecebido.replace(",", ".")) || 0;
 
-  const troco =
-    valorRecebidoNumero - total;
+  const troco = valorRecebidoNumero - total;
 
   function dinheiro(valor: number) {
-    return valor.toLocaleString(
-      "pt-BR",
-      {
-        style: "currency",
-        currency: "BRL",
-      }
-    );
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
   }
 
-  function nomeFormaPagamento(
-    forma: FormaPagamento
-  ) {
-    const nomes: Record<
-      FormaPagamento,
-      string
-    > = {
+  function nomeFormaPagamento(forma: FormaPagamento) {
+    const nomes: Record<FormaPagamento, string> = {
       dinheiro: "Dinheiro",
       pix: "PIX",
       credito: "Cartão de crédito",
@@ -131,41 +102,25 @@ const PDV: React.FC = () => {
     return nomes[forma];
   }
 
-  function formatarDataDigitada(
-    valor: string
-  ) {
-    const numeros = valor
-      .replace(/\D/g, "")
-      .slice(0, 8);
+  function formatarDataDigitada(valor: string) {
+    const numeros = valor.replace(/\D/g, "").slice(0, 8);
 
-    if (numeros.length <= 2) {
-      return numeros;
-    }
+    if (numeros.length <= 2) return numeros;
 
     if (numeros.length <= 4) {
-      return `${numeros.slice(
-        0,
-        2
-      )}/${numeros.slice(2)}`;
+      return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
     }
 
-    return `${numeros.slice(
-      0,
-      2
-    )}/${numeros.slice(
+    return `${numeros.slice(0, 2)}/${numeros.slice(
       2,
       4
     )}/${numeros.slice(4)}`;
   }
 
-  function converterDataParaISO(
-    valor: string
-  ) {
+  function converterDataParaISO(valor: string) {
     const partes = valor.split("/");
 
-    if (partes.length !== 3) {
-      return null;
-    }
+    if (partes.length !== 3) return null;
 
     const diaTexto = partes[0];
     const mesTexto = partes[1];
@@ -186,12 +141,7 @@ const PDV: React.FC = () => {
     if (
       !Number.isInteger(dia) ||
       !Number.isInteger(mes) ||
-      !Number.isInteger(ano)
-    ) {
-      return null;
-    }
-
-    if (
+      !Number.isInteger(ano) ||
       dia < 1 ||
       dia > 31 ||
       mes < 1 ||
@@ -200,11 +150,7 @@ const PDV: React.FC = () => {
       return null;
     }
 
-    const data = new Date(
-      ano,
-      mes - 1,
-      dia
-    );
+    const data = new Date(ano, mes - 1, dia);
 
     if (
       data.getFullYear() !== ano ||
@@ -217,101 +163,61 @@ const PDV: React.FC = () => {
     return `${ano}-${String(mes).padStart(
       2,
       "0"
-    )}-${String(dia).padStart(
-      2,
-      "0"
-    )}`;
+    )}-${String(dia).padStart(2, "0")}`;
   }
 
   useEffect(() => {
     const busca = clienteBusca.trim();
 
-    if (!busca || clienteSelecionado) {
-      return;
-    }
+    if (!busca || clienteSelecionado) return;
 
-    const temporizador = setTimeout(
-      async () => {
-        try {
-          setBuscandoCliente(true);
+    const temporizador = setTimeout(async () => {
+      try {
+        setBuscandoCliente(true);
 
-          const resposta = await api.get(
-            `/clientes?busca=${encodeURIComponent(
-              busca
-            )}`
+        const resposta = await api.get(
+          `/clientes?busca=${encodeURIComponent(busca)}`
+        );
+
+        const dados = Array.isArray(resposta.data)
+          ? resposta.data
+          : [];
+
+        const clientesNormalizados = dados
+          .map((cliente) => ({
+            ...cliente,
+            cliente_id: Number(cliente.cliente_id),
+          }))
+          .filter(
+            (cliente) =>
+              Number.isInteger(cliente.cliente_id) &&
+              cliente.cliente_id > 0
           );
 
-          const dados =
-            Array.isArray(resposta.data)
-              ? resposta.data
-              : [];
+        setClientes(clientesNormalizados);
+      } catch (erro: unknown) {
+        console.error("Erro ao pesquisar cliente:", erro);
+        setClientes([]);
+      } finally {
+        setBuscandoCliente(false);
+      }
+    }, 300);
 
-          /*
-           * O backend retorna cliente_id.
-           * Normalizamos para o formato usado
-           * pelo frontend.
-           */
-          const clientesNormalizados =
-            dados
-              .map((cliente) => ({
-                ...cliente,
-                cliente_id: Number(
-                  cliente.cliente_id
-                ),
-              }))
-              .filter(
-                (cliente) =>
-                  Number.isInteger(
-                    cliente.cliente_id
-                  ) &&
-                  cliente.cliente_id > 0
-              );
+    return () => clearTimeout(temporizador);
+  }, [clienteBusca, clienteSelecionado]);
 
-          setClientes(
-            clientesNormalizados
-          );
-        } catch (erro: unknown) {
-          console.error(
-            "Erro ao pesquisar cliente:",
-            erro
-          );
-
-          setClientes([]);
-        } finally {
-          setBuscandoCliente(false);
-        }
-      },
-      300
-    );
-
-    return () => {
-      clearTimeout(temporizador);
-    };
-  }, [
-    clienteBusca,
-    clienteSelecionado,
-  ]);
-
-  function selecionarCliente(
-    cliente: Cliente
-  ) {
+  function selecionarCliente(cliente: Cliente) {
     if (
-      !Number.isInteger(
-        Number(cliente.cliente_id)
-      ) ||
+      !Number.isInteger(Number(cliente.cliente_id)) ||
       Number(cliente.cliente_id) <= 0
     ) {
-      alert(
-        "Cliente inválido."
-      );
+      alert("Cliente inválido.");
       return;
     }
 
     setClienteSelecionado({
       ...cliente,
-      cliente_id: Number(
-        cliente.cliente_id
-      ),
+      cliente_id: Number(cliente.cliente_id),
     });
 
     setClienteBusca("");
@@ -326,109 +232,65 @@ const PDV: React.FC = () => {
 
   async function adicionarItem() {
     const codigoLido = codigo.trim();
-
     const quantidadeInformada =
-      Number(
-        quantidade.replace(",", ".")
-      );
+      Number(quantidade.replace(",", "."));
 
     if (!codigoLido) {
-      alert(
-        "Digite ou bipe o código de barras."
-      );
+      alert("Digite ou bipe o código de barras.");
       return;
     }
 
     if (
-      !Number.isFinite(
-        quantidadeInformada
-      ) ||
+      !Number.isFinite(quantidadeInformada) ||
       quantidadeInformada <= 0
     ) {
-      alert(
-        "Informe uma quantidade válida."
-      );
+      alert("Informe uma quantidade válida.");
       return;
     }
 
     try {
-      const resposta =
-        await api.get<Produto>(
-          `/produtos/codigo/${encodeURIComponent(
-            codigoLido
-          )}`
-        );
+      const resposta = await api.get<Produto>(
+        `/produtos/codigo/${encodeURIComponent(codigoLido)}`
+      );
 
       const produto = resposta.data;
 
       if (
         !produto ||
-        !Number.isInteger(
-          Number(produto.produtoId)
-        ) ||
+        !Number.isInteger(Number(produto.produtoId)) ||
         Number(produto.produtoId) <= 0
       ) {
-        alert(
-          "Produto não encontrado."
-        );
+        alert("Produto não encontrado.");
         return;
       }
 
-      const produtoId =
-        Number(produto.produtoId);
+      const produtoId = Number(produto.produtoId);
+      const precoUnitario = Number(produto.precoVenda);
+      const estoqueDisponivel = Number(produto.quantidadeEstoque);
 
-      const precoUnitario =
-        Number(produto.precoVenda);
-
-      const estoqueDisponivel =
-        Number(
-          produto.quantidadeEstoque
-        );
-
-      if (
-        !Number.isFinite(
-          precoUnitario
-        ) ||
-        precoUnitario < 0
-      ) {
-        alert(
-          "Preço do produto inválido."
-        );
+      if (!Number.isFinite(precoUnitario) || precoUnitario < 0) {
+        alert("Preço do produto inválido.");
         return;
       }
 
       if (
-        !Number.isFinite(
-          estoqueDisponivel
-        ) ||
+        !Number.isFinite(estoqueDisponivel) ||
         estoqueDisponivel < 0
       ) {
-        alert(
-          "Estoque do produto inválido."
-        );
+        alert("Estoque do produto inválido.");
         return;
       }
 
       setUltimoProduto(produto);
 
-      const itemExistente =
-        itens.find(
-          (item) =>
-            Number(item.produtoId) ===
-            produtoId
-        );
+      const itemExistente = itens.find(
+        (item) => Number(item.produtoId) === produtoId
+      );
 
-      const quantidadeAtual =
-        itemExistente?.quantidade ?? 0;
+      const quantidadeAtual = itemExistente?.quantidade ?? 0;
+      const novaQuantidade = quantidadeAtual + quantidadeInformada;
 
-      const novaQuantidade =
-        quantidadeAtual +
-        quantidadeInformada;
-
-      if (
-        novaQuantidade >
-        estoqueDisponivel
-      ) {
+      if (novaQuantidade > estoqueDisponivel) {
         alert(
           `Estoque insuficiente. Disponível: ${estoqueDisponivel}.`
         );
@@ -438,14 +300,12 @@ const PDV: React.FC = () => {
       if (itemExistente) {
         setItens((atual) =>
           atual.map((item) =>
-            item.produtoId ===
-              produtoId
+            item.produtoId === produtoId
               ? {
-                ...item,
-                quantidade:
-                  novaQuantidade,
-                precoUnitario,
-              }
+                  ...item,
+                  quantidade: novaQuantidade,
+                  precoUnitario,
+                }
               : item
           )
         );
@@ -454,10 +314,8 @@ const PDV: React.FC = () => {
           ...atual,
           {
             produtoId,
-            produtoNome:
-              produto.nome,
-            quantidade:
-              quantidadeInformada,
+            produtoNome: produto.nome,
+            quantidade: quantidadeInformada,
             precoUnitario,
           },
         ]);
@@ -466,11 +324,7 @@ const PDV: React.FC = () => {
       setCodigo("");
       setQuantidade("1");
     } catch (erro: unknown) {
-      console.error(
-        "Erro ao buscar produto:",
-        erro
-      );
-
+      console.error("Erro ao buscar produto:", erro);
       alert(
         "Não foi possível localizar o produto. Confira o código."
       );
@@ -482,9 +336,7 @@ const PDV: React.FC = () => {
     novaQuantidade: number
   ) {
     if (
-      !Number.isFinite(
-        novaQuantidade
-      ) ||
+      !Number.isFinite(novaQuantidade) ||
       novaQuantidade <= 0
     ) {
       return;
@@ -493,52 +345,30 @@ const PDV: React.FC = () => {
     setItens((atual) =>
       atual.map((item) =>
         item.produtoId === produtoId
-          ? {
-            ...item,
-            quantidade:
-              novaQuantidade,
-          }
+          ? { ...item, quantidade: novaQuantidade }
           : item
       )
     );
   }
 
-  function removerItem(
-    produtoId: number
-  ) {
+  function removerItem(produtoId: number) {
     setItens((atual) =>
-      atual.filter(
-        (item) =>
-          item.produtoId !==
-          produtoId
-      )
+      atual.filter((item) => item.produtoId !== produtoId)
     );
   }
 
   function limparVenda() {
-    if (itens.length === 0) {
-      return;
-    }
+    if (itens.length === 0) return;
 
-    const confirmar =
-      window.confirm(
-        "Deseja cancelar esta venda?"
-      );
-
-    if (!confirmar) {
-      return;
-    }
+    if (!window.confirm("Deseja cancelar esta venda?")) return;
 
     setItens([]);
     setCodigo("");
     setQuantidade("1");
     setValorRecebido("");
     setVencimento("");
-    setFormaPagamento(
-      "dinheiro"
-    );
+    setFormaPagamento("dinheiro");
     setUltimoProduto(null);
-
     setClienteSelecionado(null);
     setClienteBusca("");
     setClientes([]);
@@ -546,17 +376,13 @@ const PDV: React.FC = () => {
 
   function fecharComprovante() {
     setVendaFinalizada(null);
-
     setItens([]);
     setCodigo("");
     setQuantidade("1");
     setValorRecebido("");
     setVencimento("");
-    setFormaPagamento(
-      "dinheiro"
-    );
+    setFormaPagamento("dinheiro");
     setUltimoProduto(null);
-
     setClienteSelecionado(null);
     setClienteBusca("");
     setClientes([]);
@@ -564,46 +390,29 @@ const PDV: React.FC = () => {
 
   async function finalizarVenda() {
     if (itens.length === 0) {
-      alert(
-        "Adicione pelo menos um produto."
-      );
+      alert("Adicione pelo menos um produto.");
       return;
     }
 
-    if (
-      formaPagamento ===
-      "dinheiro"
-    ) {
-      if (
-        valorRecebido.trim() === ""
-      ) {
-        alert(
-          "Informe o valor recebido."
-        );
+    if (formaPagamento === "dinheiro") {
+      if (valorRecebido.trim() === "") {
+        alert("Informe o valor recebido.");
         return;
       }
 
-      if (
-        valorRecebidoNumero <
-        total
-      ) {
+      if (valorRecebidoNumero < total) {
         alert(
           `O valor recebido é menor que o total da venda. Faltam ${dinheiro(
-            total -
-            valorRecebidoNumero
+            total - valorRecebidoNumero
           )}.`
         );
         return;
       }
     }
 
-    let vencimentoISO:
-      string | null = null;
+    let vencimentoISO: string | null = null;
 
-    if (
-      formaPagamento ===
-      "fiado"
-    ) {
+    if (formaPagamento === "fiado") {
       if (!clienteSelecionado) {
         alert(
           "Para realizar uma venda fiado, selecione um cliente."
@@ -611,17 +420,9 @@ const PDV: React.FC = () => {
         return;
       }
 
-      const clienteId =
-        Number(
-          clienteSelecionado.cliente_id
-        );
+      const clienteId = Number(clienteSelecionado.cliente_id);
 
-      if (
-        !Number.isInteger(
-          clienteId
-        ) ||
-        clienteId <= 0
-      ) {
+      if (!Number.isInteger(clienteId) || clienteId <= 0) {
         alert(
           "O cliente selecionado é inválido. Selecione o cliente novamente."
         );
@@ -629,704 +430,294 @@ const PDV: React.FC = () => {
       }
 
       if (!vencimento) {
-        alert(
-          "Informe a data de vencimento da venda fiado."
-        );
+        alert("Informe a data de vencimento da venda fiado.");
         return;
       }
 
-      vencimentoISO =
-        converterDataParaISO(
-          vencimento
-        );
+      vencimentoISO = converterDataParaISO(vencimento);
 
       if (!vencimentoISO) {
-        alert(
-          "Informe uma data válida no formato DD/MM/AAAA."
-        );
+        alert("Informe uma data válida no formato DD/MM/AAAA.");
         return;
       }
     }
 
-    const itensVenda: ItemVendaEnvio[] =
-      itens.map((item) => ({
-        produtoId:
-          Number(item.produtoId),
-        quantidade:
-          Number(item.quantidade),
-        precoUnitario:
-          Number(item.precoUnitario),
-      }));
+    const itensVenda: ItemVendaEnvio[] = itens.map((item) => ({
+      produtoId: Number(item.produtoId),
+      quantidade: Number(item.quantidade),
+      precoUnitario: Number(item.precoUnitario),
+    }));
 
-    const itemInvalido =
-      itensVenda.find(
-        (item) =>
-          !Number.isInteger(
-            item.produtoId
-          ) ||
-          item.produtoId <= 0 ||
-          !Number.isFinite(
-            item.quantidade
-          ) ||
-          item.quantidade <= 0 ||
-          !Number.isFinite(
-            item.precoUnitario
-          ) ||
-          item.precoUnitario < 0
-      );
+    const itemInvalido = itensVenda.find(
+      (item) =>
+        !Number.isInteger(item.produtoId) ||
+        item.produtoId <= 0 ||
+        !Number.isFinite(item.quantidade) ||
+        item.quantidade <= 0 ||
+        !Number.isFinite(item.precoUnitario) ||
+        item.precoUnitario < 0
+    );
 
     if (itemInvalido) {
-      console.error(
-        "Item inválido:",
-        itemInvalido
-      );
-
+      console.error("Item inválido:", itemInvalido);
       alert(
         "Existe um produto com dados inválidos no carrinho. Remova e adicione o produto novamente."
       );
-
       return;
     }
 
-    /*
-     * IMPORTANTE:
-     * O backend usa cliente_id.
-     * Aqui enviamos clienteId para o VendaController,
-     * que é exatamente o nome esperado por ele.
-     */
-   let clienteId: number | null = null;
+    let clienteId: number | null = null;
 
-if (formaPagamento === "fiado") {
-  const idCliente = Number(clienteSelecionado?.cliente_id);
+    if (formaPagamento === "fiado") {
+      const idCliente = Number(clienteSelecionado?.cliente_id);
 
-  if (!Number.isInteger(idCliente) || idCliente <= 0) {
-    alert("Cliente inválido. Selecione o cliente novamente.");
-    return;
-  }
+      if (!Number.isInteger(idCliente) || idCliente <= 0) {
+        alert("Cliente inválido. Selecione o cliente novamente.");
+        return;
+      }
 
-  clienteId = idCliente;
-}
+      clienteId = idCliente;
+    }
 
     try {
       setCarregando(true);
 
-      const resposta =
-        await api.post<VendaCriada>("/vendas", {
-          clienteId,
-          itens: itensVenda,
-          formaPagamento,
+      const resposta = await api.post<VendaCriada>("/vendas", {
+        clienteId,
+        itens: itensVenda,
+        formaPagamento,
+        valorRecebido:
+          formaPagamento === "dinheiro"
+            ? valorRecebidoNumero
+            : total,
+        total,
+        vencimento:
+          formaPagamento === "fiado"
+            ? vencimentoISO
+            : undefined,
+      });
 
-          valorRecebido:
-            formaPagamento === "dinheiro"
-              ? valorRecebidoNumero
-              : total,
-
-          total,
-
-          vencimento:
-            formaPagamento === "fiado"
-              ? vencimentoISO
-              : undefined,
-        });
-
-      const venda =
-        resposta.data;
-
-      setVendaFinalizada(venda);
+      setVendaFinalizada(resposta.data);
     } catch (erro: unknown) {
-      console.error(
-        "Erro ao finalizar venda:",
-        erro
-      );
-
-      alert(
-        "Não foi possível finalizar a venda."
-      );
+      console.error("Erro ao finalizar venda:", erro);
+      alert("Não foi possível finalizar a venda.");
     } finally {
       setCarregando(false);
     }
   }
 
-  const colunas: ColunaTabela<ItemVenda>[] =
-    [
-      {
-        chave: "produtoNome",
-        titulo: "Produto",
-        render: (_, item) => (
-          <div>
-            <strong>
-              {item.produtoNome}
-            </strong>
-
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                color: "#777",
-              }}
-            >
-              Código:{" "}
-              {item.produtoId}
-            </div>
+  const colunas: ColunaTabela<ItemVenda>[] = [
+    {
+      chave: "produtoNome",
+      titulo: "Produto",
+      render: (_, item) => (
+        <div>
+          <strong>{item.produtoNome}</strong>
+          <div className={styles.codigoProduto}>
+            Código: {item.produtoId}
           </div>
-        ),
-      },
-
-      {
-        chave: "quantidade",
-        titulo: "Quantidade",
-        render: (_, item) => (
-          <div
-            style={{
-              display: "flex",
-              alignItems:
-                "center",
-              gap: 6,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() =>
-                alterarQuantidade(
-                  item.produtoId,
-                  item.quantidade - 1
-                )
-              }
-              disabled={
-                item.quantidade <=
-                1
-              }
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 5,
-                border:
-                  "1px solid #ccc",
-                cursor:
-                  item.quantidade <=
-                    1
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              −
-            </button>
-
-            <input
-              type="number"
-              min="0.001"
-              step="0.001"
-              value={
-                item.quantidade
-              }
-              onChange={(evento) =>
-                alterarQuantidade(
-                  item.produtoId,
-                  Number(
-                    evento.target
-                      .value
-                  )
-                )
-              }
-              style={{
-                width: 70,
-                height: 30,
-                textAlign:
-                  "center",
-                border:
-                  "1px solid #ccc",
-                borderRadius: 5,
-              }}
-            />
-
-            <button
-              type="button"
-              onClick={() =>
-                alterarQuantidade(
-                  item.produtoId,
-                  item.quantidade + 1
-                )
-              }
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 5,
-                border:
-                  "1px solid #ccc",
-                cursor: "pointer",
-              }}
-            >
-              +
-            </button>
-          </div>
-        ),
-      },
-
-      {
-        chave: "precoUnitario",
-        titulo: "Preço",
-        render: (valor) =>
-          dinheiro(
-            Number(valor)
-          ),
-      },
-
-      {
-        chave: "produtoId",
-        titulo: "Subtotal",
-        render: (_, item) => (
-          <strong>
-            {dinheiro(
-              item.quantidade *
-              item.precoUnitario
-            )}
-          </strong>
-        ),
-      },
-
-      {
-        chave: "produtoNome",
-        titulo: "",
-        render: (_, item) => (
+        </div>
+      ),
+    },
+    {
+      chave: "quantidade",
+      titulo: "Quantidade",
+      render: (_, item) => (
+        <div className={styles.controleQuantidade}>
           <button
             type="button"
             onClick={() =>
-              removerItem(
-                item.produtoId
+              alterarQuantidade(item.produtoId, item.quantidade - 1)
+            }
+            disabled={item.quantidade <= 1}
+            className={styles.botaoQuantidade}
+          >
+            −
+          </button>
+
+          <input
+            type="number"
+            min="0.001"
+            step="0.001"
+            value={item.quantidade}
+            onChange={(evento) =>
+              alterarQuantidade(
+                item.produtoId,
+                Number(evento.target.value)
               )
             }
-            style={{
-              border: "none",
-              background:
-                "transparent",
-              color: "#dc2626",
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
+            className={styles.inputQuantidade}
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              alterarQuantidade(item.produtoId, item.quantidade + 1)
+            }
+            className={styles.botaoQuantidade}
           >
-            Remover
+            +
           </button>
-        ),
-      },
-    ];
+        </div>
+      ),
+    },
+    {
+      chave: "precoUnitario",
+      titulo: "Preço",
+      render: (valor) => dinheiro(Number(valor)),
+    },
+    {
+      chave: "produtoId",
+      titulo: "Subtotal",
+      render: (_, item) => (
+        <strong>
+          {dinheiro(item.quantidade * item.precoUnitario)}
+        </strong>
+      ),
+    },
+    {
+      chave: "produtoNome",
+      titulo: "",
+      render: (_, item) => (
+        <button
+          type="button"
+          onClick={() => removerItem(item.produtoId)}
+          className={styles.botaoRemover}
+        >
+          Remover
+        </button>
+      ),
+    },
+  ];
 
   return (
-    <main
-      style={{
-        padding: 24,
-        maxWidth: 1500,
-        margin: "0 auto",
-      }}
-    >
-      <header
-        style={{
-          marginBottom: 24,
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 30,
-          }}
-        >
-          Frente de Caixa
-        </h1>
-
-        <p
-          style={{
-            marginTop: 8,
-            color: "#666",
-          }}
-        >
-          Registre os produtos e
-          finalize a venda.
+    <main className={styles.pagina}>
+      <header className={styles.cabecalho}>
+        <h1 className={styles.titulo}>Frente de Caixa</h1>
+        <p className={styles.subtitulo}>
+          Registre os produtos e finalize a venda.
         </p>
       </header>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "minmax(0, 1fr) 380px",
-          gap: 24,
-          alignItems: "start",
-        }}
-      >
-        <div>
-          <section
-            style={{
-              padding: 20,
-              border:
-                "1px solid #ddd",
-              borderRadius: 10,
-              background: "#fff",
-            }}
-          >
-            <h2
-              style={{
-                marginTop: 0,
-              }}
-            >
-              Leitura de produto
-            </h2>
+      <section className={styles.layoutPrincipal}>
+        <div className={styles.colunaProdutos}>
+          <section className={styles.painel}>
+            <h2 className={styles.tituloSecao}>Leitura de produto</h2>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                alignItems:
-                  "flex-end",
-                flexWrap: "wrap",
-              }}
-            >
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 240,
-                }}
-              >
+            <div className={styles.formularioProduto}>
+              <div className={styles.campoCodigo}>
                 <Input
                   label="Código de barras"
                   valor={codigo}
-                  aoAlterar={
-                    setCodigo
-                  }
+                  aoAlterar={setCodigo}
                   placeholder="Bipe ou digite o código"
                 />
               </div>
 
-              <div
-                style={{
-                  width: 120,
-                }}
-              >
+              <div className={styles.campoQtd}>
                 <Input
                   label="Quantidade"
-                  valor={
-                    quantidade
-                  }
-                  aoAlterar={
-                    setQuantidade
-                  }
+                  valor={quantidade}
+                  aoAlterar={setQuantidade}
                   placeholder="1"
                 />
               </div>
 
-              <Botao
-                texto="Adicionar"
-                onClick={
-                  adicionarItem
-                }
-              />
+              <div className={styles.botaoAdicionar}>
+                <Botao texto="Adicionar" onClick={adicionarItem} />
+              </div>
             </div>
           </section>
 
           {ultimoProduto && (
-            <section
-              style={{
-                marginTop: 16,
-                padding: 16,
-                borderRadius: 10,
-                border:
-                  "1px solid #bfdbfe",
-                background:
-                  "#eff6ff",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#2563eb",
-                  fontWeight: 700,
-                  marginBottom: 6,
-                  textTransform:
-                    "uppercase",
-                }}
-              >
-                Último produto
-                lançado
+            <section className={styles.ultimoProduto}>
+              <div className={styles.etiquetaUltimoProduto}>
+                Último produto lançado
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "center",
-                  gap: 16,
-                  flexWrap:
-                    "wrap",
-                }}
-              >
-                <div>
-                  <strong
-                    style={{
-                      fontSize: 19,
-                    }}
-                  >
-                    {
-                      ultimoProduto.nome
-                    }
+              <div className={styles.detalhesUltimoProduto}>
+                <div className={styles.informacaoProduto}>
+                  <strong className={styles.nomeUltimoProduto}>
+                    {ultimoProduto.nome}
                   </strong>
-
-                  <div
-                    style={{
-                      marginTop: 5,
-                      color: "#555",
-                      fontSize: 13,
-                    }}
-                  >
+                  <div className={styles.textoSecundario}>
                     Código de barras:{" "}
-                    {ultimoProduto.codigoBarras ||
-                      ultimoProduto.produtoId}
+                    {ultimoProduto.codigoBarras || ultimoProduto.produtoId}
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    textAlign:
-                      "right",
-                  }}
-                >
-                  <strong
-                    style={{
-                      fontSize: 20,
-                    }}
-                  >
-                    {dinheiro(
-                      Number(
-                        ultimoProduto.precoVenda
-                      )
-                    )}
+                <div className={styles.precoUltimoProduto}>
+                  <strong className={styles.valorUltimoProduto}>
+                    {dinheiro(Number(ultimoProduto.precoVenda))}
                   </strong>
-
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: 13,
-                      color: "#555",
-                    }}
-                  >
-                    Estoque disponível:{" "}
-                    {
-                      ultimoProduto.quantidadeEstoque
-                    }
+                  <div className={styles.textoSecundario}>
+                    Estoque disponível: {ultimoProduto.quantidadeEstoque}
                   </div>
                 </div>
               </div>
             </section>
           )}
 
-          <section
-            style={{
-              marginTop: 24,
-              padding: 20,
-              border:
-                "1px solid #ddd",
-              borderRadius: 10,
-              background: "#fff",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems:
-                  "center",
-                marginBottom: 16,
-              }}
-            >
+          <section className={styles.painelLista}>
+            <div className={styles.cabecalhoLista}>
               <div>
-                <h2
-                  style={{
-                    margin: 0,
-                  }}
-                >
-                  Produtos da venda
-                </h2>
-
-                <p
-                  style={{
-                    margin:
-                      "6px 0 0",
-                    color: "#666",
-                  }}
-                >
-                  {
-                    quantidadeTotal
-                  }{" "}
-                  item(ns)
+                <h2 className={styles.tituloSecao}>Produtos da venda</h2>
+                <p className={styles.contagemItens}>
+                  {quantidadeTotal} item(ns)
                 </p>
               </div>
 
-              {itens.length >
-                0 && (
-                  <button
-                    type="button"
-                    onClick={
-                      limparVenda
-                    }
-                    style={{
-                      border: "none",
-                      background:
-                        "#fee2e2",
-                      color:
-                        "#b91c1c",
-                      padding:
-                        "9px 14px",
-                      borderRadius: 6,
-                      cursor:
-                        "pointer",
-                      fontWeight:
-                        600,
-                    }}
-                  >
-                    Cancelar venda
-                  </button>
-                )}
+              {itens.length > 0 && (
+                <button
+                  type="button"
+                  onClick={limparVenda}
+                  className={styles.botaoCancelarVenda}
+                >
+                  Cancelar venda
+                </button>
+              )}
             </div>
 
-            {itens.length ===
-              0 ? (
-              <div
-                style={{
-                  padding: 50,
-                  textAlign:
-                    "center",
-                  border:
-                    "1px dashed #ccc",
-                  borderRadius: 8,
-                  color: "#777",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 40,
-                    marginBottom: 10,
-                  }}
-                >
-                  🛒
-                </div>
-
-                <h3>
-                  Carrinho vazio
-                </h3>
-
+            {itens.length === 0 ? (
+              <div className={styles.carrinhoVazio}>
+                <div className={styles.iconeCarrinho}>🛒</div>
+                <h3>Carrinho vazio</h3>
                 <p>
-                  Bipe ou digite o
-                  código de barras
-                  para adicionar
-                  produtos.
+                  Bipe ou digite o código de barras para adicionar produtos.
                 </p>
               </div>
             ) : (
-              <Tabela
-                colunas={
-                  colunas
-                }
-                dados={itens}
-                chaveLinha={(
-                  item
-                ) =>
-                  item.produtoId
-                }
-              />
+              <div className={styles.tabelaResponsiva}>
+                <Tabela
+                  colunas={colunas}
+                  dados={itens}
+                  chaveLinha={(item) => item.produtoId}
+                />
+              </div>
             )}
           </section>
         </div>
 
-        <aside
-          style={{
-            position:
-              "sticky",
-            top: 20,
-            padding: 22,
-            border:
-              "1px solid #ddd",
-            borderRadius: 10,
-            background: "#fff",
-          }}
-        >
-          <h2
-            style={{
-              marginTop: 0,
-            }}
-          >
-            Resumo da venda
-          </h2>
+        <aside className={styles.resumoVenda}>
+          <h2 className={styles.tituloResumo}>Resumo da venda</h2>
 
-          <section
-            style={{
-              marginBottom: 24,
-              padding: 14,
-              border:
-                "1px solid #ddd",
-              borderRadius: 8,
-              background:
-                "#f9fafb",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                marginBottom: 12,
-              }}
-            >
-              Cliente
-            </h3>
+          <section className={styles.painelCliente}>
+            <h3 className={styles.tituloCliente}>Cliente</h3>
 
             {clienteSelecionado ? (
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  background:
-                    "#eff6ff",
-                  border:
-                    "1px solid #bfdbfe",
-                }}
-              >
-                <strong>
-                  {
-                    clienteSelecionado.nome
-                  }
-                </strong>
+              <div className={styles.clienteSelecionado}>
+                <strong>{clienteSelecionado.nome}</strong>
 
                 {clienteSelecionado.documento && (
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: 13,
-                      color: "#555",
-                    }}
-                  >
-                    Documento:{" "}
-                    {
-                      clienteSelecionado.documento
-                    }
+                  <div className={styles.documentoCliente}>
+                    Documento: {clienteSelecionado.documento}
                   </div>
                 )}
 
                 <button
                   type="button"
-                  onClick={
-                    removerCliente
-                  }
-                  style={{
-                    marginTop: 10,
-                    border: "none",
-                    background:
-                      "transparent",
-                    color:
-                      "#dc2626",
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      600,
-                    padding: 0,
-                  }}
+                  onClick={removerCliente}
+                  className={styles.botaoTrocarCliente}
                 >
                   Trocar cliente
                 </button>
@@ -1335,799 +726,267 @@ if (formaPagamento === "fiado") {
               <>
                 <Input
                   label="Pesquisar cliente"
-                  valor={
-                    clienteBusca
-                  }
-                  aoAlterar={
-                    setClienteBusca
-                  }
+                  valor={clienteBusca}
+                  aoAlterar={setClienteBusca}
                   placeholder="Digite nome ou CPF"
                 />
 
                 {buscandoCliente && (
-                  <div
-                    style={{
-                      marginTop: 8,
-                      fontSize: 13,
-                      color: "#666",
-                    }}
-                  >
+                  <div className={styles.mensagemPesquisa}>
                     Pesquisando...
                   </div>
                 )}
 
-                {clientes.length >
-                  0 && (
-                    <div
-                      style={{
-                        marginTop: 10,
-                        border:
-                          "1px solid #ddd",
-                        borderRadius: 6,
-                        background:
-                          "#fff",
-                        overflow:
-                          "hidden",
-                      }}
-                    >
-                      {clientes.map(
-                        (
-                          cliente
-                        ) => (
-                          <button
-                            key={
-                              cliente.cliente_id
-                            }
-                            type="button"
-                            onClick={() =>
-                              selecionarCliente(
-                                cliente
-                              )
-                            }
-                            style={{
-                              display:
-                                "block",
-                              width:
-                                "100%",
-                              padding: 12,
-                              textAlign:
-                                "left",
-                              border:
-                                "none",
-                              borderBottom:
-                                "1px solid #eee",
-                              background:
-                                "#fff",
-                              cursor:
-                                "pointer",
-                            }}
-                          >
-                            <strong>
-                              {
-                                cliente.nome
-                              }
-                            </strong>
-
-                            {cliente.documento && (
-                              <div
-                                style={{
-                                  marginTop: 3,
-                                  fontSize: 12,
-                                  color:
-                                    "#666",
-                                }}
-                              >
-                                {
-                                  cliente.documento
-                                }
-                              </div>
-                            )}
-                          </button>
-                        )
-                      )}
-                    </div>
-                  )}
+                {clientes.length > 0 && (
+                  <div className={styles.listaClientes}>
+                    {clientes.map((cliente) => (
+                      <button
+                        key={cliente.cliente_id}
+                        type="button"
+                        onClick={() => selecionarCliente(cliente)}
+                        className={styles.itemCliente}
+                      >
+                        <strong>{cliente.nome}</strong>
+                        {cliente.documento && (
+                          <div className={styles.documentoCliente}>
+                            {cliente.documento}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {clienteBusca.trim() &&
                   !buscandoCliente &&
-                  clientes.length ===
-                  0 && (
-                    <p
-                      style={{
-                        marginBottom: 0,
-                        fontSize: 13,
-                        color:
-                          "#777",
-                      }}
-                    >
-                      Nenhum cliente
-                      encontrado.
+                  clientes.length === 0 && (
+                    <p className={styles.mensagemSemCliente}>
+                      Nenhum cliente encontrado.
                     </p>
                   )}
               </>
             )}
           </section>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              marginBottom: 10,
-            }}
-          >
-            <span>
-              Quantidade de itens
-            </span>
-
-            <strong>
-              {quantidadeTotal}
-            </strong>
+          <div className={styles.linhaResumo}>
+            <span>Quantidade de itens</span>
+            <strong>{quantidadeTotal}</strong>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              marginBottom: 18,
-            }}
-          >
-            <span>
-              Produtos
-            </span>
-
-            <strong>
-              {itens.length}
-            </strong>
+          <div className={styles.linhaResumo}>
+            <span>Produtos</span>
+            <strong>{itens.length}</strong>
           </div>
 
-          <hr />
+          <hr className={styles.divisor} />
 
-          <div
-            style={{
-              marginTop: 20,
-              marginBottom: 24,
-            }}
-          >
-            <span
-              style={{
-                color: "#666",
-              }}
-            >
-              Total da venda
-            </span>
-
-            <div
-              style={{
-                fontSize: 34,
-                fontWeight: 700,
-                marginTop: 6,
-              }}
-            >
-              {dinheiro(total)}
-            </div>
+          <div className={styles.totalVenda}>
+            <span className={styles.rotuloTotal}>Total da venda</span>
+            <div className={styles.valorTotal}>{dinheiro(total)}</div>
           </div>
 
-          <h3>
-            Forma de pagamento
-          </h3>
+          <h3 className={styles.tituloPagamento}>Forma de pagamento</h3>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "1fr 1fr",
-              gap: 8,
-            }}
-          >
+          <div className={styles.gradePagamentos}>
             {(
               [
-                [
-                  "dinheiro",
-                  "Dinheiro",
-                ],
+                ["dinheiro", "Dinheiro"],
                 ["pix", "PIX"],
-                [
-                  "credito",
-                  "Crédito",
-                ],
-                [
-                  "debito",
-                  "Débito",
-                ],
-                [
-                  "fiado",
-                  "Fiado",
-                ],
-              ] as [
-                FormaPagamento,
-                string
-              ][]
-            ).map(
-              ([
-                valor,
-                texto,
-              ]) => (
-                <button
-                  key={valor}
-                  type="button"
-                  onClick={() => {
-                    setFormaPagamento(
-                      valor
-                    );
+                ["credito", "Crédito"],
+                ["debito", "Débito"],
+                ["fiado", "Fiado"],
+              ] as [FormaPagamento, string][]
+            ).map(([valor, texto]) => (
+              <button
+                key={valor}
+                type="button"
+                onClick={() => {
+                  setFormaPagamento(valor);
 
-                    if (
-                      valor !==
-                      "dinheiro"
-                    ) {
-                      setValorRecebido(
-                        ""
-                      );
-                    }
+                  if (valor !== "dinheiro") {
+                    setValorRecebido("");
+                  }
 
-                    if (
-                      valor !==
-                      "fiado"
-                    ) {
-                      setVencimento(
-                        ""
-                      );
-                    }
-                  }}
-                  style={{
-                    padding:
-                      "12px 8px",
-                    borderRadius: 6,
-                    border:
-                      formaPagamento ===
-                        valor
-                        ? "2px solid #2563eb"
-                        : "1px solid #ccc",
-                    background:
-                      formaPagamento ===
-                        valor
-                        ? "#dbeafe"
-                        : "#fff",
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      600,
-                  }}
-                >
-                  {texto}
-                </button>
-              )
-            )}
+                  if (valor !== "fiado") {
+                    setVencimento("");
+                  }
+                }}
+                className={`${styles.botaoPagamento} ${
+                  formaPagamento === valor
+                    ? styles.pagamentoSelecionado
+                    : ""
+                }`}
+              >
+                {texto}
+              </button>
+            ))}
           </div>
 
-          {formaPagamento ===
-            "dinheiro" && (
-              <div
-                style={{
-                  marginTop: 18,
-                }}
-              >
-                <Input
-                  label="Valor recebido"
-                  valor={
-                    valorRecebido
-                  }
-                  aoAlterar={
-                    setValorRecebido
-                  }
-                  placeholder="Ex.: 30,00"
-                />
+          {formaPagamento === "dinheiro" && (
+            <div className={styles.detalhesDinheiro}>
+              <Input
+                label="Valor recebido"
+                valor={valorRecebido}
+                aoAlterar={setValorRecebido}
+                placeholder="Ex.: 30,00"
+              />
 
-                {valorRecebidoNumero >
-                  total &&
-                  total > 0 && (
-                    <div
-                      style={{
-                        marginTop: 12,
-                        padding: 12,
-                        borderRadius: 6,
-                        background:
-                          "#dcfce7",
-                        border:
-                          "1px solid #86efac",
-                      }}
-                    >
-                      <span>
-                        Troco
-                      </span>
-
-                      <strong
-                        style={{
-                          display:
-                            "block",
-                          fontSize: 22,
-                          marginTop: 4,
-                          color:
-                            "#166534",
-                        }}
-                      >
-                        {dinheiro(
-                          troco
-                        )}
-                      </strong>
-                    </div>
-                  )}
-
-                {valorRecebidoNumero >
-                  0 &&
-                  valorRecebidoNumero <
-                  total && (
-                    <div
-                      style={{
-                        marginTop: 12,
-                        padding: 12,
-                        borderRadius: 6,
-                        background:
-                          "#fee2e2",
-                        border:
-                          "1px solid #fecaca",
-                        color:
-                          "#b91c1c",
-                      }}
-                    >
-                      Falta{" "}
-                      <strong>
-                        {dinheiro(
-                          total -
-                          valorRecebidoNumero
-                        )}
-                      </strong>
-                    </div>
-                  )}
-              </div>
-            )}
-
-          {formaPagamento ===
-            "fiado" && (
-              <div
-                style={{
-                  marginTop: 18,
-                  padding: 14,
-                  borderRadius: 8,
-                  border:
-                    "1px solid #fde68a",
-                  background:
-                    "#fffbeb",
-                }}
-              >
-                <div
-                  style={{
-                    marginBottom: 12,
-                    fontSize: 13,
-                    color: "#92400e",
-                  }}
-                >
-                  A venda será registrada
-                  como conta a receber.
+              {valorRecebidoNumero > total && total > 0 && (
+                <div className={styles.caixaTroco}>
+                  <span>Troco</span>
+                  <strong className={styles.valorTroco}>
+                    {dinheiro(troco)}
+                  </strong>
                 </div>
+              )}
 
-                {!clienteSelecionado && (
-                  <div
-                    style={{
-                      marginBottom: 12,
-                      padding: 10,
-                      borderRadius: 6,
-                      background:
-                        "#fee2e2",
-                      border:
-                        "1px solid #fecaca",
-                      color:
-                        "#b91c1c",
-                      fontSize: 13,
-                    }}
-                  >
-                    Selecione um cliente
-                    para realizar a venda
-                    fiado.
+              {valorRecebidoNumero > 0 &&
+                valorRecebidoNumero < total && (
+                  <div className={styles.caixaFalta}>
+                    Falta{" "}
+                    <strong>
+                      {dinheiro(total - valorRecebidoNumero)}
+                    </strong>
                   </div>
                 )}
+            </div>
+          )}
 
-                <Input
-                  label="Data de vencimento"
-                  valor={vencimento}
-                  aoAlterar={(valor) =>
-                    setVencimento(
-                      formatarDataDigitada(
-                        valor
-                      )
-                    )
-                  }
-                  placeholder="DD/MM/AAAA"
-                />
-
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 12,
-                    color: "#666",
-                  }}
-                >
-                  Digite a data no formato
-                  DD/MM/AAAA.
-                </div>
+          {formaPagamento === "fiado" && (
+            <div className={styles.detalhesFiado}>
+              <div className={styles.avisoFiado}>
+                A venda será registrada como conta a receber.
               </div>
-            )}
 
-          <div
-            style={{
-              marginTop: 24,
-            }}
-          >
+              {!clienteSelecionado && (
+                <div className={styles.alertaClienteFiado}>
+                  Selecione um cliente para realizar a venda fiado.
+                </div>
+              )}
+
+              <Input
+                label="Data de vencimento"
+                valor={vencimento}
+                aoAlterar={(valor) =>
+                  setVencimento(formatarDataDigitada(valor))
+                }
+                placeholder="DD/MM/AAAA"
+              />
+
+              <div className={styles.ajudaVencimento}>
+                Digite a data no formato DD/MM/AAAA.
+              </div>
+            </div>
+          )}
+
+          <div className={styles.acaoFinalizar}>
             <Botao
-              texto={
-                carregando
-                  ? "Finalizando..."
-                  : "Finalizar venda"
-              }
+              texto={carregando ? "Finalizando..." : "Finalizar venda"}
               variante="sucesso"
-              onClick={
-                finalizarVenda
-              }
+              onClick={finalizarVenda}
             />
           </div>
         </aside>
       </section>
 
       {vendaFinalizada && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background:
-              "rgba(0, 0, 0, 0.55)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent:
-              "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 420,
-              maxHeight: "90vh",
-              overflowY: "auto",
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              boxSizing:
-                "border-box",
-              boxShadow:
-                "0 20px 50px rgba(0,0,0,0.25)",
-            }}
-          >
-            <div
-              style={{
-                textAlign: "center",
-                borderBottom:
-                  "1px dashed #999",
-                paddingBottom: 16,
-                marginBottom: 16,
-              }}
-            >
-              <h2
-                style={{
-                  margin: 0,
-                }}
-              >
-                MERCADOPRO
-              </h2>
-
-              <p
-                style={{
-                  margin:
-                    "6px 0 0",
-                  color: "#666",
-                  fontSize: 13,
-                }}
-              >
+        <div className={styles.fundoModal}>
+          <div className={styles.comprovante}>
+            <div className={styles.cabecalhoComprovante}>
+              <h2 className={styles.nomeLoja}>MERCADOPRO</h2>
+              <p className={styles.subtituloComprovante}>
                 Comprovante de venda
               </p>
-
-              <p
-                style={{
-                  margin:
-                    "6px 0 0",
-                  fontSize: 13,
-                }}
-              >
-                Venda #
-                {
-                  vendaFinalizada.id
-                }
+              <p className={styles.numeroVenda}>
+                Venda #{vendaFinalizada.id}
               </p>
             </div>
 
-            <div
-              style={{
-                marginBottom: 16,
-                fontSize: 13,
-              }}
-            >
-              <p
-                style={{
-                  margin:
-                    "4px 0",
-                }}
-              >
-                <strong>
-                  Data:
-                </strong>{" "}
-                {new Date(
-                  vendaFinalizada.dataVenda
-                ).toLocaleString(
-                  "pt-BR"
-                )}
+            <div className={styles.dadosComprovante}>
+              <p>
+                <strong>Data:</strong>{" "}
+                {new Date(vendaFinalizada.dataVenda).toLocaleString("pt-BR")}
               </p>
 
               {clienteSelecionado && (
-                <p
-                  style={{
-                    margin:
-                      "4px 0",
-                  }}
-                >
-                  <strong>
-                    Cliente:
-                  </strong>{" "}
-                  {
-                    clienteSelecionado.nome
-                  }
+                <p>
+                  <strong>Cliente:</strong> {clienteSelecionado.nome}
                 </p>
               )}
             </div>
 
-            <div
-              style={{
-                borderTop:
-                  "1px solid #ddd",
-                borderBottom:
-                  "1px solid #ddd",
-                padding:
-                  "12px 0",
-              }}
-            >
-              {itens.map(
-                (item) => (
-                  <div
-                    key={
-                      item.produtoId
-                    }
-                    style={{
-                      display:
-                        "flex",
-                      justifyContent:
-                        "space-between",
-                      gap: 12,
-                      marginBottom: 10,
-                      fontSize: 13,
-                    }}
-                  >
-                    <div
-                      style={{
-                        flex: 1,
-                      }}
-                    >
-                      <strong>
-                        {
-                          item.produtoNome
-                        }
-                      </strong>
-
-                      <div
-                        style={{
-                          color:
-                            "#666",
-                          marginTop: 2,
-                        }}
-                      >
-                        {
-                          item.quantidade
-                        }{" "}
-                        x{" "}
-                        {dinheiro(
-                          item.precoUnitario
-                        )}
-                      </div>
+            <div className={styles.itensComprovante}>
+              {itens.map((item) => (
+                <div
+                  key={item.produtoId}
+                  className={styles.itemComprovante}
+                >
+                  <div className={styles.descricaoItemComprovante}>
+                    <strong>{item.produtoNome}</strong>
+                    <div className={styles.detalheItemComprovante}>
+                      {item.quantidade} x {dinheiro(item.precoUnitario)}
                     </div>
-
-                    <strong>
-                      {dinheiro(
-                        item.quantidade *
-                        item.precoUnitario
-                      )}
-                    </strong>
                   </div>
-                )
-              )}
+                  <strong>
+                    {dinheiro(item.quantidade * item.precoUnitario)}
+                  </strong>
+                </div>
+              ))}
             </div>
 
-            <div
-              style={{
-                marginTop: 16,
-              }}
-            >
-              <div
-                style={{
-                  display:
-                    "flex",
-                  justifyContent:
-                    "space-between",
-                  fontSize: 20,
-                  fontWeight: 700,
-                }}
-              >
-                <span>
-                  TOTAL
-                </span>
-
-                <span>
-                  {dinheiro(
-                    vendaFinalizada.total
-                  )}
-                </span>
+            <div className={styles.resumoComprovante}>
+              <div className={styles.totalComprovante}>
+                <span>TOTAL</span>
+                <span>{dinheiro(vendaFinalizada.total)}</span>
               </div>
 
-              <div
-                style={{
-                  display:
-                    "flex",
-                  justifyContent:
-                    "space-between",
-                  marginTop: 10,
-                  fontSize: 14,
-                }}
-              >
-                <span>
-                  Pagamento
-                </span>
-
+              <div className={styles.linhaComprovante}>
+                <span>Pagamento</span>
                 <strong>
-                  {nomeFormaPagamento(
-                    vendaFinalizada.formaPagamento
-                  )}
+                  {nomeFormaPagamento(vendaFinalizada.formaPagamento)}
                 </strong>
               </div>
 
-              {vendaFinalizada.formaPagamento ===
-                "dinheiro" && (
-                  <>
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        justifyContent:
-                          "space-between",
-                        marginTop: 6,
-                        fontSize: 14,
-                      }}
-                    >
-                      <span>
-                        Recebido
-                      </span>
-
-                      <strong>
-                        {dinheiro(
-                          valorRecebidoNumero
-                        )}
-                      </strong>
-                    </div>
-
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        justifyContent:
-                          "space-between",
-                        marginTop: 6,
-                        fontSize: 14,
-                      }}
-                    >
-                      <span>
-                        Troco
-                      </span>
-
-                      <strong>
-                        {dinheiro(
-                          troco
-                        )}
-                      </strong>
-                    </div>
-                  </>
-                )}
-
-              {vendaFinalizada.formaPagamento ===
-                "fiado" && (
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      justifyContent:
-                        "space-between",
-                      marginTop: 6,
-                      fontSize: 14,
-                    }}
-                  >
-                    <span>
-                      Vencimento
-                    </span>
-
-                    <strong>
-                      {vencimento}
-                    </strong>
+              {vendaFinalizada.formaPagamento === "dinheiro" && (
+                <>
+                  <div className={styles.linhaComprovante}>
+                    <span>Recebido</span>
+                    <strong>{dinheiro(valorRecebidoNumero)}</strong>
                   </div>
-                )}
+                  <div className={styles.linhaComprovante}>
+                    <span>Troco</span>
+                    <strong>{dinheiro(troco)}</strong>
+                  </div>
+                </>
+              )}
+
+              {vendaFinalizada.formaPagamento === "fiado" && (
+                <div className={styles.linhaComprovante}>
+                  <span>Vencimento</span>
+                  <strong>{vencimento}</strong>
+                </div>
+              )}
             </div>
 
-            <div
-              style={{
-                marginTop: 20,
-                paddingTop: 16,
-                borderTop:
-                  "1px dashed #999",
-                textAlign: "center",
-                fontSize: 12,
-                color: "#666",
-              }}
-            >
+            <div className={styles.rodapeComprovante}>
               Obrigado pela preferência!
               <br />
-              Este é um comprovante não
-              fiscal.
+              Este é um comprovante não fiscal.
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                marginTop: 20,
-              }}
-            >
+            <div className={styles.acoesComprovante}>
               <button
                 type="button"
-                onClick={() =>
-                  window.print()
-                }
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  borderRadius: 6,
-                  border:
-                    "1px solid #ccc",
-                  background: "#fff",
-                  cursor:
-                    "pointer",
-                  fontWeight: 600,
-                }}
+                onClick={() => window.print()}
+                className={styles.botaoImprimir}
               >
                 Imprimir
               </button>
 
               <button
                 type="button"
-                onClick={
-                  fecharComprovante
-                }
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  borderRadius: 6,
-                  border: "none",
-                  background:
-                    "#2563eb",
-                  color: "#fff",
-                  cursor:
-                    "pointer",
-                  fontWeight: 600,
-                }}
+                onClick={fecharComprovante}
+                className={styles.botaoNovaVenda}
               >
                 Nova venda
               </button>

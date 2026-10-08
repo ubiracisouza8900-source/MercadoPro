@@ -9,6 +9,8 @@ import api from "../services/api";
 
 import type { Cliente } from "../types/Cliente";
 
+import styles from "./Clientes.module.css";
+
 interface DadosCep {
   cep: string;
   logradouro: string;
@@ -21,9 +23,7 @@ interface DadosCep {
 const Clientes: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState("");
-
   const [modalAberto, setModalAberto] = useState(false);
-
   const [clienteEditando, setClienteEditando] =
     useState<Cliente | null>(null);
 
@@ -49,15 +49,10 @@ const Clientes: React.FC = () => {
   async function carregarClientes() {
     try {
       setCarregando(true);
-
       const resposta = await api.get("/clientes");
-
       setClientes(resposta.data);
     } catch (error) {
-      console.error(
-        "Erro ao carregar clientes:",
-        error
-      );
+      console.error("Erro ao carregar clientes:", error);
     } finally {
       setCarregando(false);
     }
@@ -84,7 +79,6 @@ const Clientes: React.FC = () => {
 
   function editarCliente(cliente: Cliente) {
     setClienteEditando(cliente);
-
     setNome(cliente.nome || "");
     setDocumento(cliente.documento || "");
     setTelefone(cliente.telefone || "");
@@ -93,8 +87,7 @@ const Clientes: React.FC = () => {
     setEndereco(cliente.endereco || "");
 
     setNr(
-      cliente.nr !== undefined &&
-        cliente.nr !== null
+      cliente.nr !== undefined && cliente.nr !== null
         ? String(cliente.nr)
         : ""
     );
@@ -102,7 +95,6 @@ const Clientes: React.FC = () => {
     setBairro(cliente.bairro || "");
     setCidade(cliente.cidade || "");
     setUf(cliente.uf || "");
-
     setModalAberto(true);
   }
 
@@ -126,8 +118,7 @@ const Clientes: React.FC = () => {
         `https://viacep.com.br/ws/${cepLimpo}/json/`
       );
 
-      const dados: DadosCep =
-        await resposta.json();
+      const dados: DadosCep = await resposta.json();
 
       if (dados.erro) {
         alert("CEP não encontrado.");
@@ -139,14 +130,8 @@ const Clientes: React.FC = () => {
       setCidade(dados.localidade || "");
       setUf(dados.uf || "");
     } catch (error) {
-      console.error(
-        "Erro ao consultar CEP:",
-        error
-      );
-
-      alert(
-        "Não foi possível consultar o CEP."
-      );
+      console.error("Erro ao consultar CEP:", error);
+      alert("Não foi possível consultar o CEP.");
     } finally {
       setBuscandoCep(false);
     }
@@ -160,12 +145,7 @@ const Clientes: React.FC = () => {
       return;
     }
 
-    setCep(
-      `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(
-        5,
-        8
-      )}`
-    );
+    setCep(`${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5, 8)}`);
   }
 
   async function salvar() {
@@ -208,32 +188,20 @@ const Clientes: React.FC = () => {
           dados
         );
       } else {
-        await api.post(
-          "/clientes",
-          dados
-        );
+        await api.post("/clientes", dados);
       }
 
       await carregarClientes();
-
       fecharModal();
     } catch (error) {
-      console.error(
-        "Erro ao salvar cliente:",
-        error
-      );
-
-      alert(
-        "Não foi possível salvar o cliente."
-      );
+      console.error("Erro ao salvar cliente:", error);
+      alert("Não foi possível salvar o cliente.");
     } finally {
       setCarregando(false);
     }
   }
 
-  async function removerCliente(
-    cliente: Cliente
-  ) {
+  async function removerCliente(cliente: Cliente) {
     const confirmar = window.confirm(
       `Deseja realmente remover o cliente "${cliente.nome}"?`
     );
@@ -243,122 +211,56 @@ const Clientes: React.FC = () => {
     }
 
     try {
-      await api.delete(
-        `/clientes/${cliente.cliente_id}`
-      );
-
+      await api.delete(`/clientes/${cliente.cliente_id}`);
       await carregarClientes();
     } catch (error) {
-      console.error(
-        "Erro ao remover cliente:",
-        error
-      );
-
-      alert(
-        "Não foi possível remover o cliente."
-      );
+      console.error("Erro ao remover cliente:", error);
+      alert("Não foi possível remover o cliente.");
     }
   }
 
-  const clientesFiltrados =
-    clientes.filter((cliente) => {
-      const texto =
-        busca.toLowerCase().trim();
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const texto = busca.toLowerCase().trim();
 
-      if (!texto) {
-        return true;
-      }
+    if (!texto) {
+      return true;
+    }
 
-      return (
-        cliente.nome
-          ?.toLowerCase()
-          .includes(texto) ||
-        cliente.documento
-          ?.toLowerCase()
-          .includes(texto) ||
-        cliente.telefone
-          ?.toLowerCase()
-          .includes(texto) ||
-        cliente.cep
-          ?.toLowerCase()
-          .includes(texto) ||
-        cliente.cidade
-          ?.toLowerCase()
-          .includes(texto) ||
-        cliente.uf
-          ?.toLowerCase()
-          .includes(texto)
-      );
-    });
+    return (
+      cliente.nome?.toLowerCase().includes(texto) ||
+      cliente.documento?.toLowerCase().includes(texto) ||
+      cliente.telefone?.toLowerCase().includes(texto) ||
+      cliente.cep?.toLowerCase().includes(texto) ||
+      cliente.cidade?.toLowerCase().includes(texto) ||
+      cliente.uf?.toLowerCase().includes(texto)
+    );
+  });
 
   const colunas = [
-    {
-      chave: "nome" as keyof Cliente,
-      titulo: "Nome",
-    },
-    {
-      chave: "documento" as keyof Cliente,
-      titulo: "Documento",
-    },
-    {
-      chave: "telefone" as keyof Cliente,
-      titulo: "Telefone",
-    },
-    {
-      chave: "email" as keyof Cliente,
-      titulo: "E-mail",
-    },
-    {
-      chave: "cep" as keyof Cliente,
-      titulo: "CEP",
-    },
-    {
-      chave: "endereco" as keyof Cliente,
-      titulo: "Endereço",
-    },
-    {
-      chave: "nr" as keyof Cliente,
-      titulo: "Nº",
-    },
-    {
-      chave: "bairro" as keyof Cliente,
-      titulo: "Bairro",
-    },
-    {
-      chave: "cidade" as keyof Cliente,
-      titulo: "Cidade",
-    },
-    {
-      chave: "uf" as keyof Cliente,
-      titulo: "UF",
-    },
+    { chave: "nome" as keyof Cliente, titulo: "Nome" },
+    { chave: "documento" as keyof Cliente, titulo: "Documento" },
+    { chave: "telefone" as keyof Cliente, titulo: "Telefone" },
+    { chave: "email" as keyof Cliente, titulo: "E-mail" },
+    { chave: "cep" as keyof Cliente, titulo: "CEP" },
+    { chave: "endereco" as keyof Cliente, titulo: "Endereço" },
+    { chave: "nr" as keyof Cliente, titulo: "Nº" },
+    { chave: "bairro" as keyof Cliente, titulo: "Bairro" },
+    { chave: "cidade" as keyof Cliente, titulo: "Cidade" },
+    { chave: "uf" as keyof Cliente, titulo: "UF" },
     {
       chave: "cliente_id" as keyof Cliente,
       titulo: "Ações",
-      render: (
-        _valor: any,
-        cliente: Cliente
-      ) => (
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-          }}
-        >
+      render: (_valor: any, cliente: Cliente) => (
+        <div className={styles.acoesTabela}>
           <Botao
             texto="Editar"
             variante="secundario"
-            onClick={() =>
-              editarCliente(cliente)
-            }
+            onClick={() => editarCliente(cliente)}
           />
-
           <Botao
             texto="Excluir"
             variante="perigo"
-            onClick={() =>
-              removerCliente(cliente)
-            }
+            onClick={() => removerCliente(cliente)}
           />
         </div>
       ),
@@ -370,10 +272,7 @@ const Clientes: React.FC = () => {
       <div className="pagina-cabecalho">
         <div>
           <h1>Clientes</h1>
-
-          <p>
-            Cadastro e gerenciamento de clientes
-          </p>
+          <p>Cadastro e gerenciamento de clientes</p>
         </div>
 
         <Botao
@@ -396,31 +295,23 @@ const Clientes: React.FC = () => {
       {carregando && clientes.length === 0 ? (
         <p>Carregando clientes...</p>
       ) : (
-        <Tabela<Cliente>
-          colunas={colunas}
-          dados={clientesFiltrados}
-          chaveLinha={(cliente) =>
-            cliente.cliente_id
-          }
-        />
+        <div className={styles.tabelaResponsiva}>
+          <Tabela<Cliente>
+            colunas={colunas}
+            dados={clientesFiltrados}
+            chaveLinha={(cliente) => cliente.cliente_id}
+          />
+        </div>
       )}
 
       <Modal
         aberto={modalAberto}
-        titulo={
-          clienteEditando
-            ? "Editar cliente"
-            : "Novo cliente"
-        }
+        titulo={clienteEditando ? "Editar cliente" : "Novo cliente"}
         aoFechar={fecharModal}
         aoConfirmar={salvar}
-        textoConfirmar={
-          carregando
-            ? "Salvando..."
-            : "Salvar"
-        }
+        textoConfirmar={carregando ? "Salvando..." : "Salvar"}
       >
-        <div className="formulario">
+        <div className={styles.formulario}>
           <Input
             label="Nome *"
             tipo="text"
@@ -453,14 +344,8 @@ const Clientes: React.FC = () => {
             placeholder="cliente@email.com"
           />
 
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              alignItems: "flex-end",
-            }}
-          >
-            <div style={{ flex: 1 }}>
+          <div className={styles.campoCep}>
+            <div className={styles.inputCep}>
               <Input
                 label="CEP *"
                 tipo="text"
@@ -470,15 +355,13 @@ const Clientes: React.FC = () => {
               />
             </div>
 
-            <Botao
-              texto={
-                buscandoCep
-                  ? "Consultando..."
-                  : "Buscar CEP"
-              }
-              variante="secundario"
-              onClick={buscarCep}
-            />
+            <div className={styles.botaoCep}>
+              <Botao
+                texto={buscandoCep ? "Consultando..." : "Buscar CEP"}
+                variante="secundario"
+                onClick={buscarCep}
+              />
+            </div>
           </div>
 
           <Input

@@ -1,0 +1,884 @@
+
+.pagina {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.cabecalho {
+  margin-bottom: 24px;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.subtitulo {
+  margin-top: 8px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.layoutPrincipal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+.colunaProdutos {
+  min-width: 0;
+}
+
+.painel,
+.painelLista {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.tituloSecao {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.formularioProduto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.campoCodigo {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.campoQtd {
+  flex: 0 1 120px;
+  min-width: 100px;
+}
+
+.botaoAdicionar {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.ultimoProduto {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  box-sizing: border-box;
+}
+
+.etiquetaUltimoProduto {
+  margin-bottom: 6px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.detalhesUltimoProduto {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.informacaoProduto,
+.precoUltimoProduto {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nomeUltimoProduto {
+  font-size: 19px;
+}
+
+.precoUltimoProduto {
+  text-align: right;
+}
+
+.valorUltimoProduto {
+  font-size: 20px;
+}
+
+.textoSecundario {
+  margin-top: 5px;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.painelLista {
+  margin-top: 24px;
+}
+
+.cabecalhoLista {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cabecalhoLista .tituloSecao {
+  margin: 0;
+}
+
+.contagemItens {
+  margin: 6px 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.botaoCancelarVenda {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.botaoCancelarVenda:hover {
+  background: #fecaca;
+}
+
+.carrinhoVazio {
+  padding: 50px 20px;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  color: #777;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.carrinhoVazio h3 {
+  margin: 8px 0;
+  color: #444;
+}
+
+.carrinhoVazio p {
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.iconeCarrinho {
+  margin-bottom: 10px;
+  font-size: 40px;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.codigoProduto {
+  margin-top: 4px;
+  color: #777;
+  font-size: 12px;
+}
+
+.controleQuantidade {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botaoQuantidade {
+  display: inline-flex;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.botaoQuantidade:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.inputQuantidade {
+  width: 70px;
+  min-width: 50px;
+  height: 30px;
+  padding: 3px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.botaoRemover {
+  padding: 5px;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.botaoRemover:hover {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
+.resumoVenda {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.tituloResumo {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+
+.painelCliente {
+  margin-bottom: 24px;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9fafb;
+  min-width: 0;
+}
+
+.tituloCliente {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.clienteSelecionado {
+  padding: 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  overflow-wrap: anywhere;
+}
+
+.documentoCliente {
+  margin-top: 4px;
+  color: #555;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.botaoTrocarCliente {
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.mensagemPesquisa {
+  margin-top: 8px;
+  color: #666;
+  font-size: 13px;
+}
+
+.listaClientes {
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.itemCliente {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+
+.itemCliente:last-child {
+  border-bottom: none;
+}
+
+.itemCliente:hover {
+  background: #f3f4f6;
+}
+
+.mensagemSemCliente {
+  margin-bottom: 0;
+  color: #777;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.linhaResumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+}
+
+.linhaResumo strong {
+  text-align: right;
+}
+
+.divisor {
+  margin: 18px 0;
+  border: 0;
+  border-top: 1px solid #ddd;
+}
+
+.totalVenda {
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.rotuloTotal {
+  color: #666;
+}
+
+.valorTotal {
+  margin-top: 6px;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.tituloPagamento {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.gradePagamentos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.botaoPagamento {
+  min-width: 0;
+  padding: 12px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.botaoPagamento:hover {
+  background: #f3f4f6;
+}
+
+.pagamentoSelecionado {
+  border: 2px solid #2563eb;
+  background: #dbeafe;
+}
+
+.pagamentoSelecionado:hover {
+  background: #dbeafe;
+}
+
+.detalhesDinheiro {
+  margin-top: 18px;
+}
+
+.caixaTroco {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  background: #dcfce7;
+}
+
+.valorTroco {
+  display: block;
+  margin-top: 4px;
+  color: #166534;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.caixaFalta {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  overflow-wrap: anywhere;
+}
+
+.detalhesFiado {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+.avisoFiado {
+  margin-bottom: 12px;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.alertaClienteFiado {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ajudaVencimento {
+  margin-top: 8px;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.acaoFinalizar {
+  margin-top: 24px;
+}
+
+.fundoModal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgb(0 0 0 / 55%);
+}
+
+.comprovante {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 12px;
+  background: #fff;
+  box-sizing: border-box;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 25%);
+}
+
+.cabecalhoComprovante {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #999;
+  text-align: center;
+}
+
+.nomeLoja {
+  margin: 0;
+}
+
+.subtituloComprovante {
+  margin: 6px 0 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.numeroVenda {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.dadosComprovante {
+  margin-bottom: 16px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.dadosComprovante p {
+  margin: 4px 0;
+}
+
+.itensComprovante {
+  padding: 12px 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.itemComprovante {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.itemComprovante:last-child {
+  margin-bottom: 0;
+}
+
+.descricaoItemComprovante {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detalheItemComprovante {
+  margin-top: 2px;
+  color: #666;
+}
+
+.resumoComprovante {
+  margin-top: 16px;
+}
+
+.totalComprovante {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.linhaComprovante {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.linhaComprovante strong,
+.totalComprovante span:last-child {
+  text-align: right;
+}
+
+.rodapeComprovante {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed #999;
+  color: #666;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.acoesComprovante {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.botaoImprimir,
+.botaoNovaVenda {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.botaoImprimir {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #222;
+}
+
+.botaoNovaVenda {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+}
+
+.botaoImprimir:hover {
+  background: #f3f4f6;
+}
+
+.botaoNovaVenda:hover {
+  background: #1d4ed8;
+}
+
+/* Notebooks e telas intermediárias */
+@media (max-width: 1200px) {
+  .pagina {
+    padding: 20px;
+  }
+
+  .layoutPrincipal {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 18px;
+  }
+
+  .resumoVenda {
+    padding: 18px;
+  }
+
+  .valorTotal {
+    font-size: 30px;
+  }
+
+  .painel,
+  .painelLista {
+    padding: 16px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+  .layoutPrincipal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resumoVenda {
+    position: static;
+    width: 100%;
+  }
+
+  .gradePagamentos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .campoCodigo {
+    flex: 1 1 220px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  .pagina {
+    padding: 14px;
+  }
+
+  .cabecalho {
+    margin-bottom: 18px;
+  }
+
+  .titulo {
+    font-size: 25px;
+  }
+
+  .layoutPrincipal {
+    gap: 16px;
+  }
+
+  .painel,
+  .painelLista {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .tituloSecao {
+    font-size: 1.1rem;
+  }
+
+  .formularioProduto {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .campoCodigo,
+  .campoQtd,
+  .botaoAdicionar {
+    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .detalhesUltimoProduto {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .precoUltimoProduto {
+    text-align: left;
+  }
+
+  .cabecalhoLista {
+    align-items: flex-start;
+  }
+
+  .botaoCancelarVenda {
+    max-width: 100%;
+  }
+
+  .carrinhoVazio {
+    padding: 32px 14px;
+  }
+
+  .resumoVenda {
+    padding: 16px;
+  }
+
+  .valorTotal {
+    font-size: 29px;
+  }
+
+  .gradePagamentos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fundoModal {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .comprovante {
+    margin: auto 0;
+    padding: 18px;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 380px) {
+  .pagina {
+    padding: 10px;
+  }
+
+  .titulo {
+    font-size: 22px;
+  }
+
+  .painel,
+  .painelLista,
+  .resumoVenda {
+    padding: 12px;
+  }
+
+  .valorTotal {
+    font-size: 25px;
+  }
+
+  .gradePagamentos {
+    gap: 6px;
+  }
+
+  .botaoPagamento {
+    padding: 10px 5px;
+    font-size: 13px;
+  }
+
+  .acoesComprovante {
+    flex-direction: column;
+  }
+
+  .botaoImprimir,
+  .botaoNovaVenda {
+    width: 100%;
+  }
+}
+
+/* Monitores grandes */
+@media (min-width: 1600px) {
+  .pagina {
+    max-width: 1700px;
+    padding: 30px;
+  }
+
+  .layoutPrincipal {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 28px;
+  }
+
+  .painel,
+  .painelLista {
+    padding: 24px;
+  }
+
+  .resumoVenda {
+    padding: 26px;
+  }
+}
+
+/* Impressão do comprovante */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .fundoModal,
+  .fundoModal * {
+    visibility: visible;
+  }
+
+  .fundoModal {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+  }
+
+  .comprovante {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 12px;
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .acoesComprovante {
+    display: none;
+  }
+}

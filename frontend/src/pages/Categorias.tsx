@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import Tabela, { ColunaTabela } from "../components/Tabela";
 import Modal from "../components/Modal";
 import Input from "../components/Input";
 import Botao from "../components/Botao";
 import api from "../services/api";
+import styles from "./Categorias.module.css";
 
 interface Categoria {
   categoriaId: number;
@@ -39,14 +41,8 @@ const Categorias: React.FC = () => {
   ];
 
   return (
-    <main style={{ padding: 24 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
+    <main className={styles.container}>
+      <div className={styles.cabecalho}>
         <h2>Categorias</h2>
 
         <Botao

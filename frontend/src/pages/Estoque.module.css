@@ -1,0 +1,110 @@
+
+.pagina {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.titulo {
+  margin: 0 0 20px;
+  color: #1c1f26;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.pesquisa {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1f26;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pesquisa:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgb(100 116 139 / 15%);
+}
+
+.pesquisa::placeholder {
+  color: #9ca3af;
+}
+
+.quantidadeBaixa {
+  color: #e5484d;
+  font-weight: 600;
+}
+
+.quantidadeNormal {
+  color: #1c1f26;
+  font-weight: 600;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Notebooks e tablets */
+@media (max-width: 768px) {
+  .pagina {
+    padding: 20px 16px;
+  }
+
+  .titulo {
+    font-size: 1.35rem;
+  }
+
+  .pesquisa {
+    max-width: none;
+  }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .pagina {
+    padding: 16px 12px;
+  }
+
+  .titulo {
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+  }
+
+  .pesquisa {
+    min-height: 44px;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1600px) {
+  .pagina {
+    padding: 32px;
+  }
+
+  .titulo {
+    font-size: 1.7rem;
+  }
+
+  .pesquisa {
+    max-width: 480px;
+    min-height: 46px;
+    font-size: 15px;
+  }
+}

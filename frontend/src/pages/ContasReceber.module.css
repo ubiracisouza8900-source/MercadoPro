@@ -1,0 +1,378 @@
+.pagina {
+width: 100%;
+max-width: 1400px;
+min-width: 0;
+margin: 0 auto;
+padding: 24px;
+box-sizing: border-box;
+}
+
+.pagina * {
+box-sizing: border-box;
+}
+
+.cabecalho {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 16px;
+flex-wrap: wrap;
+margin-bottom: 20px;
+}
+
+.introducao {
+flex: 1;
+min-width: 240px;
+}
+
+.introducao h2 {
+margin: 0 0 6px;
+font-size: 1.5rem;
+overflow-wrap: anywhere;
+}
+
+.introducao p {
+margin: 0;
+color: #666;
+line-height: 1.5;
+}
+
+.resumo {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 16px;
+margin-bottom: 24px;
+}
+
+.cartaoResumo {
+min-width: 0;
+padding: 18px;
+border: 1px solid #ddd;
+border-radius: 8px;
+background: #fff;
+overflow-wrap: anywhere;
+}
+
+.rotuloResumo {
+margin-bottom: 8px;
+color: #666;
+font-size: 14px;
+}
+
+.cartaoResumo strong {
+font-size: 22px;
+line-height: 1.4;
+}
+
+.secaoFormulario {
+margin-bottom: 24px;
+padding: 20px;
+border: 1px solid #ddd;
+border-radius: 8px;
+background: #fff;
+}
+
+.secaoFormulario h3,
+.secaoRecebimento h3 {
+margin-top: 0;
+margin-bottom: 18px;
+font-size: 1.2rem;
+}
+
+.formulario {
+display: grid;
+grid-template-columns: minmax(0, 500px);
+gap: 12px;
+width: 100%;
+}
+
+.formulario input,
+.formularioRecebimento input,
+.formularioRecebimento select,
+.filtros input,
+.filtros select {
+width: 100%;
+min-width: 0;
+min-height: 42px;
+padding: 10px 12px;
+border: 1px solid #ccc;
+border-radius: 6px;
+background: #fff;
+color: #222;
+font: inherit;
+}
+
+.formulario input:focus,
+.formularioRecebimento input:focus,
+.formularioRecebimento select:focus,
+.filtros input:focus,
+.filtros select:focus {
+outline: 2px solid #2563eb;
+outline-offset: 1px;
+border-color: #2563eb;
+}
+
+.acoesFormulario {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: 10px;
+}
+
+.filtros {
+display: flex;
+align-items: center;
+gap: 12px;
+flex-wrap: wrap;
+margin-bottom: 20px;
+}
+
+.filtros input {
+flex: 1 1 260px;
+}
+
+.filtros select {
+flex: 0 1 220px;
+}
+
+.tabelaResponsiva {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+overflow-x: auto;
+overflow-y: visible;
+-webkit-overflow-scrolling: touch;
+}
+
+.tabelaResponsiva table {
+width: 100%;
+min-width: 760px;
+border-collapse: collapse;
+}
+
+.status {
+display: inline-block;
+padding: 5px 10px;
+border-radius: 6px;
+font-size: 13px;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.statusPaga {
+background: #dcfce7;
+color: #166534;
+}
+
+.statusVencida {
+background: #fee2e2;
+color: #991b1b;
+}
+
+.statusAberta {
+background: #fef3c7;
+color: #92400e;
+}
+
+.recebidaTexto {
+color: #166534;
+font-weight: 600;
+}
+
+.estadoVazio {
+padding: 30px;
+border: 1px solid #ddd;
+border-radius: 8px;
+text-align: center;
+overflow-wrap: anywhere;
+}
+
+.estadoVazio p {
+margin: 0;
+color: #666;
+}
+
+.secaoRecebimento {
+width: 100%;
+max-width: 550px;
+margin-top: 24px;
+padding: 20px;
+border: 1px solid #ddd;
+border-radius: 8px;
+background: #fff;
+}
+
+.detalhesConta {
+margin-bottom: 18px;
+padding: 15px;
+border-radius: 8px;
+background: #f8f9fa;
+overflow-wrap: anywhere;
+}
+
+.detalhesConta p {
+margin: 0 0 12px;
+line-height: 1.5;
+}
+
+.detalhesConta .ultimoDetalhe {
+margin-bottom: 0;
+}
+
+.formularioRecebimento {
+display: grid;
+gap: 12px;
+}
+
+@media (min-width: 1600px) {
+.pagina {
+max-width: 1600px;
+padding: 32px;
+}
+
+.resumo {
+grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cartaoResumo {
+padding: 22px;
+}
+
+.cartaoResumo strong {
+font-size: 24px;
+}
+}
+
+@media (max-width: 768px) {
+.pagina {
+padding: 18px;
+}
+
+.cabecalho {
+align-items: flex-start;
+}
+
+.introducao h2 {
+font-size: 1.35rem;
+}
+
+.resumo {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 12px;
+}
+
+.cartaoResumo {
+padding: 15px;
+}
+
+.cartaoResumo strong {
+font-size: 20px;
+}
+
+.secaoFormulario,
+.secaoRecebimento {
+padding: 16px;
+}
+
+.filtros {
+align-items: stretch;
+}
+
+.filtros input,
+.filtros select {
+flex: 1 1 100%;
+}
+
+.tabelaResponsiva table {
+min-width: 720px;
+}
+}
+
+@media (max-width: 480px) {
+.pagina {
+padding: 12px;
+}
+
+.cabecalho {
+flex-direction: column;
+align-items: stretch;
+gap: 12px;
+}
+
+.introducao {
+min-width: 0;
+}
+
+.introducao h2 {
+font-size: 1.2rem;
+}
+
+.introducao p {
+font-size: 0.9rem;
+}
+
+.resumo {
+grid-template-columns: minmax(0, 1fr);
+gap: 10px;
+margin-bottom: 18px;
+}
+
+.cartaoResumo {
+padding: 14px;
+}
+
+.cartaoResumo strong {
+font-size: 20px;
+}
+
+.secaoFormulario,
+.secaoRecebimento {
+padding: 14px;
+}
+
+.secaoFormulario h3,
+.secaoRecebimento h3 {
+font-size: 1.05rem;
+}
+
+.formulario input,
+.formularioRecebimento input,
+.formularioRecebimento select,
+.filtros input,
+.filtros select {
+min-height: 42px;
+font-size: 16px;
+}
+
+.acoesFormulario {
+flex-direction: column;
+align-items: stretch;
+}
+
+.acoesFormulario > * {
+max-width: 100%;
+}
+
+.detalhesConta {
+padding: 12px;
+font-size: 0.9rem;
+}
+
+.tabelaResponsiva table {
+min-width: 680px;
+}
+
+.estadoVazio {
+padding: 22px 14px;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+.pagina *,
+.pagina *::before,
+.pagina *::after {
+scroll-behavior: auto !important;
+animation-duration: 0.01ms !important;
+transition-duration: 0.01ms !important;
+}
+}

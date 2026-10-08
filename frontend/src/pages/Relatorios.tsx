@@ -1,7 +1,11 @@
+
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Botao from "../components/Botao";
 import api from "../services/api";
+import styles from "./Relatorios.module.css";
 
 interface ResumoRelatorio {
   totalVendas: number;
@@ -40,18 +44,11 @@ const Relatorios: React.FC = () => {
   const [produtosMaisVendidos, setProdutosMaisVendidos] =
     useState<ProdutoMaisVendido[]>([]);
 
-  const [dataInicio, setDataInicio] =
-    useState("");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  const [dataFim, setDataFim] =
-    useState("");
-
-  const [carregando, setCarregando] =
-    useState(false);
-
-  function obterMensagemErro(
-    erro: unknown
-  ): string {
+  function obterMensagemErro(erro: unknown): string {
     if (axios.isAxiosError<RespostaErroApi>(erro)) {
       return (
         erro.response?.data?.erro ??
@@ -63,23 +60,15 @@ const Relatorios: React.FC = () => {
     return "Erro ao gerar relatório.";
   }
 
-  function aplicarMascaraData(
-    valor: string
-  ): string {
-    const numeros = valor
-      .replace(/\D/g, "")
-      .slice(0, 8);
+  function aplicarMascaraData(valor: string): string {
+    const numeros = valor.replace(/\D/g, "").slice(0, 8);
 
     if (numeros.length <= 2) {
       return numeros;
     }
 
     if (numeros.length <= 4) {
-      return (
-        numeros.slice(0, 2) +
-        "/" +
-        numeros.slice(2)
-      );
+      return numeros.slice(0, 2) + "/" + numeros.slice(2);
     }
 
     return (
@@ -99,9 +88,7 @@ const Relatorios: React.FC = () => {
     }
 
     const resultado =
-      /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(
-        data
-      );
+      /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(data);
 
     if (!resultado) {
       return undefined;
@@ -111,11 +98,7 @@ const Relatorios: React.FC = () => {
     const mes = Number(resultado[2]);
     const ano = Number(resultado[3]);
 
-    const dataTeste = new Date(
-      ano,
-      mes - 1,
-      dia
-    );
+    const dataTeste = new Date(ano, mes - 1, dia);
 
     if (
       dataTeste.getFullYear() !== ano ||
@@ -135,11 +118,8 @@ const Relatorios: React.FC = () => {
     try {
       setCarregando(true);
 
-      const dataInicioApi =
-        converterDataParaApi(dataInicio);
-
-      const dataFimApi =
-        converterDataParaApi(dataFim);
+      const dataInicioApi = converterDataParaApi(dataInicio);
+      const dataFimApi = converterDataParaApi(dataFim);
 
       if (dataInicio && !dataInicioApi) {
         alert(
@@ -156,12 +136,8 @@ const Relatorios: React.FC = () => {
       }
 
       const parametros = {
-        ...(dataInicioApi
-          ? { dataInicio: dataInicioApi }
-          : {}),
-        ...(dataFimApi
-          ? { dataFim: dataFimApi }
-          : {}),
+        ...(dataInicioApi ? { dataInicio: dataInicioApi } : {}),
+        ...(dataFimApi ? { dataFim: dataFimApi } : {}),
       };
 
       const [
@@ -169,20 +145,15 @@ const Relatorios: React.FC = () => {
         respostaPagamentos,
         respostaProdutos,
       ] = await Promise.all([
-        api.get<ResumoRelatorio>(
-          "/relatorios/resumo",
-          {
-            params: parametros,
-          }
-        ),
-
+        api.get<ResumoRelatorio>("/relatorios/resumo", {
+          params: parametros,
+        }),
         api.get<VendaPorPagamento[]>(
           "/relatorios/vendas-por-pagamento",
           {
             params: parametros,
           }
         ),
-
         api.get<ProdutoMaisVendido[]>(
           "/relatorios/produtos-mais-vendidos",
           {
@@ -192,23 +163,11 @@ const Relatorios: React.FC = () => {
       ]);
 
       setResumo(respostaResumo.data);
-
-      setVendasPorPagamento(
-        respostaPagamentos.data
-      );
-
-      setProdutosMaisVendidos(
-        respostaProdutos.data
-      );
+      setVendasPorPagamento(respostaPagamentos.data);
+      setProdutosMaisVendidos(respostaProdutos.data);
     } catch (erro: unknown) {
-      console.error(
-        "Erro ao gerar relatório:",
-        erro
-      );
-
-      alert(
-        obterMensagemErro(erro)
-      );
+      console.error("Erro ao gerar relatório:", erro);
+      alert(obterMensagemErro(erro));
     } finally {
       setCarregando(false);
     }
@@ -222,25 +181,15 @@ const Relatorios: React.FC = () => {
     void iniciar();
   }, []);
 
-  function formatarMoeda(
-    valor: number
-  ): string {
-    return valor.toLocaleString(
-      "pt-BR",
-      {
-        style: "currency",
-        currency: "BRL",
-      }
-    );
+  function formatarMoeda(valor: number): string {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
   }
 
-  function nomeFormaPagamento(
-    forma: string
-  ): string {
-    const formas: Record<
-      string,
-      string
-    > = {
+  function nomeFormaPagamento(forma: string): string {
+    const formas: Record<string, string> = {
       dinheiro: "Dinheiro",
       pix: "PIX",
       credito: "Cartão de Crédito",
@@ -248,32 +197,16 @@ const Relatorios: React.FC = () => {
       fiado: "Fiado",
     };
 
-    return (
-      formas[forma] ?? forma
-    );
+    return formas[forma] ?? forma;
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h2>Relatórios</h2>
+    <main className={styles.pagina}>
+      <h2 className={styles.titulo}>Relatórios</h2>
 
-      <section
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "end",
-          flexWrap: "wrap",
-          marginBottom: 24,
-        }}
-      >
-        <div>
-          <label
-            htmlFor="data-inicio"
-            style={{
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
+      <section className={styles.filtros}>
+        <div className={styles.campoData}>
+          <label htmlFor="data-inicio" className={styles.label}>
             Data inicial
           </label>
 
@@ -285,30 +218,14 @@ const Relatorios: React.FC = () => {
             maxLength={10}
             value={dataInicio}
             onChange={(e) =>
-              setDataInicio(
-                aplicarMascaraData(
-                  e.target.value
-                )
-              )
+              setDataInicio(aplicarMascaraData(e.target.value))
             }
-            style={{
-              padding: "9px 10px",
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              fontSize: 15,
-              width: 130,
-            }}
+            className={styles.inputData}
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="data-fim"
-            style={{
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
+        <div className={styles.campoData}>
+          <label htmlFor="data-fim" className={styles.label}>
             Data final
           </label>
 
@@ -320,334 +237,113 @@ const Relatorios: React.FC = () => {
             maxLength={10}
             value={dataFim}
             onChange={(e) =>
-              setDataFim(
-                aplicarMascaraData(
-                  e.target.value
-                )
-              )
+              setDataFim(aplicarMascaraData(e.target.value))
             }
-            style={{
-              padding: "9px 10px",
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              fontSize: 15,
-              width: 130,
-            }}
+            className={styles.inputData}
           />
         </div>
 
-        <Botao
-          texto={
-            carregando
-              ? "Carregando..."
-              : "Gerar relatório"
-          }
-          onClick={
-            gerarRelatorio
-          }
-        />
+        <div className={styles.botaoGerar}>
+          <Botao
+            texto={carregando ? "Carregando..." : "Gerar relatório"}
+            onClick={gerarRelatorio}
+          />
+        </div>
       </section>
 
       {resumo && (
         <>
-          <section
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 16,
-              marginBottom: 30,
-            }}
-          >
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+          <section className={styles.gradeResumo}>
+            <div className={styles.cardResumo}>
               <h3>Total de vendas</h3>
-
-              <strong>
-                {formatarMoeda(
-                  resumo.totalVendas
-                )}
-              </strong>
+              <strong>{formatarMoeda(resumo.totalVendas)}</strong>
             </div>
 
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+            <div className={styles.cardResumo}>
               <h3>Quantidade de vendas</h3>
-
-              <strong>
-                {resumo.quantidadeVendas}
-              </strong>
+              <strong>{resumo.quantidadeVendas}</strong>
             </div>
 
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+            <div className={styles.cardResumo}>
               <h3>Total de compras</h3>
-
-              <strong>
-                {formatarMoeda(
-                  resumo.totalCompras
-                )}
-              </strong>
+              <strong>{formatarMoeda(resumo.totalCompras)}</strong>
             </div>
 
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+            <div className={styles.cardResumo}>
               <h3>A receber</h3>
-
-              <strong>
-                {formatarMoeda(
-                  resumo.contasReceber
-                )}
-              </strong>
+              <strong>{formatarMoeda(resumo.contasReceber)}</strong>
             </div>
 
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+            <div className={styles.cardResumo}>
               <h3>A pagar</h3>
-
-              <strong>
-                {formatarMoeda(
-                  resumo.contasPagar
-                )}
-              </strong>
+              <strong>{formatarMoeda(resumo.contasPagar)}</strong>
             </div>
 
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
+            <div className={styles.cardResumo}>
               <h3>Valor do estoque</h3>
-
-              <strong>
-                {formatarMoeda(
-                  resumo.valorEstoque
-                )}
-              </strong>
+              <strong>{formatarMoeda(resumo.valorEstoque)}</strong>
             </div>
           </section>
 
-          <section
-            style={{
-              marginBottom: 30,
-            }}
-          >
-            <h3>
-              Vendas por forma de pagamento
-            </h3>
+          <section className={styles.secaoTabela}>
+            <h3>Vendas por forma de pagamento</h3>
 
-            {vendasPorPagamento.length ===
-            0 ? (
-              <p>
-                Nenhuma venda encontrada.
-              </p>
+            {vendasPorPagamento.length === 0 ? (
+              <p>Nenhuma venda encontrada.</p>
             ) : (
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse:
-                    "collapse",
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Forma de pagamento
-                    </th>
+              <div className={styles.tabelaResponsiva}>
+                <table className={styles.tabela}>
+                  <thead>
+                    <tr>
+                      <th>Forma de pagamento</th>
+                      <th>Quantidade</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
 
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Quantidade
-                    </th>
-
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Valor
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {vendasPorPagamento.map(
-                    (item) => (
-                      <tr
-                        key={
-                          item.formaPagamento
-                        }
-                      >
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {nomeFormaPagamento(
-                            item.formaPagamento
-                          )}
+                  <tbody>
+                    {vendasPorPagamento.map((item) => (
+                      <tr key={item.formaPagamento}>
+                        <td>
+                          {nomeFormaPagamento(item.formaPagamento)}
                         </td>
-
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {item.quantidade}
-                        </td>
-
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {formatarMoeda(
-                            item.valor
-                          )}
-                        </td>
+                        <td>{item.quantidade}</td>
+                        <td>{formatarMoeda(item.valor)}</td>
                       </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </section>
 
-          <section>
-            <h3>
-              Produtos mais vendidos
-            </h3>
+          <section className={styles.secaoTabela}>
+            <h3>Produtos mais vendidos</h3>
 
-            {produtosMaisVendidos.length ===
-            0 ? (
-              <p>
-                Nenhum produto vendido
-                encontrado.
-              </p>
+            {produtosMaisVendidos.length === 0 ? (
+              <p>Nenhum produto vendido encontrado.</p>
             ) : (
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse:
-                    "collapse",
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Produto
-                    </th>
+              <div className={styles.tabelaResponsiva}>
+                <table className={styles.tabela}>
+                  <thead>
+                    <tr>
+                      <th>Produto</th>
+                      <th>Quantidade</th>
+                      <th>Valor vendido</th>
+                    </tr>
+                  </thead>
 
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Quantidade
-                    </th>
-
-                    <th
-                      style={{
-                        textAlign:
-                          "left",
-                        padding: 8,
-                      }}
-                    >
-                      Valor vendido
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {produtosMaisVendidos.map(
-                    (produto) => (
-                      <tr
-                        key={
-                          produto.produtoId
-                        }
-                      >
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {
-                            produto.produtoNome
-                          }
-                        </td>
-
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {
-                            produto.quantidade
-                          }
-                        </td>
-
-                        <td
-                          style={{
-                            padding: 8,
-                          }}
-                        >
-                          {formatarMoeda(
-                            produto.valor
-                          )}
-                        </td>
+                  <tbody>
+                    {produtosMaisVendidos.map((produto) => (
+                      <tr key={produto.produtoId}>
+                        <td>{produto.produtoNome}</td>
+                        <td>{produto.quantidade}</td>
+                        <td>{formatarMoeda(produto.valor)}</td>
                       </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </section>
         </>

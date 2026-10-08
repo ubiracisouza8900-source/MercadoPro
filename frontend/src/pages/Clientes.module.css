@@ -1,0 +1,63 @@
+.acoesTabela {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.formulario > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.campoCep {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.inputCep {
+  flex: 1;
+  min-width: 0;
+}
+
+.botaoCep {
+  flex-shrink: 0;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+  .acoesTabela {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campoCep {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .botaoCep {
+    width: 100%;
+  }
+
+  .botaoCep > * {
+    max-width: 100%;
+  }
+}

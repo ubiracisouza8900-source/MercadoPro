@@ -1,0 +1,328 @@
+
+.pagina {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.titulo {
+  margin: 0 0 24px;
+  font-size: 1.6rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.filtros {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.campoData {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.inputData {
+  box-sizing: border-box;
+  width: 150px;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 9px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font-family: inherit;
+  font-size: 15px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.inputData:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
+}
+
+.botaoGerar {
+  display: flex;
+  align-items: flex-end;
+  max-width: 100%;
+}
+
+.gradeResumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.cardResumo {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
+}
+
+.cardResumo h3 {
+  margin: 0 0 12px;
+  color: #555;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.cardResumo strong {
+  display: block;
+  color: #222;
+  font-size: 1.3rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.secaoTabela {
+  min-width: 0;
+  margin-bottom: 30px;
+}
+
+.secaoTabela h3 {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.secaoTabela p {
+  margin: 0;
+  color: #666;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  text-align: left;
+}
+
+.tabela th,
+.tabela td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e5e5;
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.tabela th {
+  background: #f7f7f7;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabela td {
+  color: #444;
+  font-size: 0.95rem;
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela tbody tr:hover {
+  background: #fafafa;
+}
+
+/* Notebooks e telas intermediárias */
+@media (max-width: 1024px) {
+  .pagina {
+    padding: 20px;
+  }
+
+  .gradeResumo {
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    gap: 12px;
+  }
+
+  .cardResumo {
+    padding: 16px;
+  }
+
+  .cardResumo strong {
+    font-size: 1.15rem;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 10px 12px;
+  }
+}
+
+/* Tablets e celulares */
+@media (max-width: 768px) {
+  .pagina {
+    padding: 16px;
+  }
+
+  .titulo {
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+  }
+
+  .filtros {
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .campoData {
+    flex: 1 1 140px;
+  }
+
+  .inputData {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .botaoGerar {
+    flex: 1 1 100%;
+  }
+
+  .gradeResumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .cardResumo {
+    padding: 14px;
+  }
+
+  .cardResumo h3 {
+    font-size: 0.88rem;
+  }
+
+  .cardResumo strong {
+    font-size: 1.05rem;
+  }
+
+  .secaoTabela {
+    margin-bottom: 24px;
+  }
+
+  .secaoTabela h3 {
+    font-size: 1.05rem;
+  }
+
+  .tabela {
+    min-width: 520px;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+  .pagina {
+    padding: 12px;
+  }
+
+  .titulo {
+    font-size: 1.25rem;
+  }
+
+  .filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .campoData {
+    width: 100%;
+    flex: none;
+  }
+
+  .botaoGerar {
+    width: 100%;
+  }
+
+  .gradeResumo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .cardResumo {
+    padding: 16px;
+  }
+
+  .cardResumo h3 {
+    margin-bottom: 8px;
+  }
+
+  .tabela {
+    min-width: 480px;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Monitores grandes */
+@media (min-width: 1600px) {
+  .pagina {
+    padding: 32px;
+  }
+
+  .titulo {
+    font-size: 1.8rem;
+  }
+
+  .gradeResumo {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .cardResumo {
+    padding: 24px;
+  }
+
+  .cardResumo h3 {
+    font-size: 1rem;
+  }
+
+  .cardResumo strong {
+    font-size: 1.4rem;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 14px 16px;
+  }
+}

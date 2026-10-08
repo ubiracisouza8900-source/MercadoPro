@@ -1,0 +1,147 @@
+
+.pagina {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 24px;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titulo {
+  margin: 0;
+  color: #1c1f26;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.pesquisa {
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1f26;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pesquisa:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgb(100 116 139 / 15%);
+}
+
+.pesquisa::placeholder {
+  color: #9ca3af;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.acoesTabela {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.formularioModal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.mensagemCep {
+  margin: 4px 0;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+/* Tablets e notebooks menores */
+@media (max-width: 768px) {
+  .pagina {
+    padding: 20px 16px;
+  }
+
+  .titulo {
+    font-size: 1.35rem;
+  }
+
+  .pesquisa {
+    max-width: none;
+  }
+
+  .acoesTabela {
+    gap: 6px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .pagina {
+    padding: 16px 12px;
+  }
+
+  .cabecalho {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .titulo {
+    font-size: 1.2rem;
+  }
+
+  .pesquisa {
+    min-height: 44px;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+
+  .acoesTabela {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .formularioModal {
+    gap: 10px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1600px) {
+  .pagina {
+    padding: 32px;
+  }
+
+  .titulo {
+    font-size: 1.7rem;
+  }
+
+  .pesquisa {
+    max-width: 560px;
+    min-height: 46px;
+    font-size: 15px;
+  }
+}

@@ -1,0 +1,178 @@
+
+.pagina {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 24px;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titulo {
+  margin: 0;
+  color: #1c1f26;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.acoesTabela {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.botaoEditar,
+.botaoExcluir {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.botaoEditar {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.botaoEditar:hover {
+  background: #dbeafe;
+}
+
+.botaoExcluir {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.botaoExcluir:hover {
+  background: #fee2e2;
+}
+
+.formularioModal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.campoCategoria {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.campoCategoria label {
+  color: #1c1f26;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.selectCategoria {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1f26;
+  font: inherit;
+  outline: none;
+}
+
+.selectCategoria:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgb(100 116 139 / 15%);
+}
+
+/* Tablets e notebooks menores */
+@media (max-width: 768px) {
+  .pagina {
+    padding: 20px 16px;
+  }
+
+  .titulo {
+    font-size: 1.35rem;
+  }
+
+  .acoesTabela {
+    gap: 6px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .pagina {
+    padding: 16px 12px;
+  }
+
+  .cabecalho {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .titulo {
+    font-size: 1.2rem;
+  }
+
+  .acoesTabela {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .botaoEditar,
+  .botaoExcluir {
+    width: 100%;
+    min-height: 38px;
+  }
+
+  .formularioModal {
+    gap: 10px;
+  }
+
+  .selectCategoria {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1600px) {
+  .pagina {
+    padding: 32px;
+  }
+
+  .titulo {
+    font-size: 1.7rem;
+  }
+
+  .botaoEditar,
+  .botaoExcluir {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}

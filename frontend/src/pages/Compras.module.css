@@ -1,0 +1,207 @@
+.pagina {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: clamp(12px, 2vw, 24px);
+  min-width: 0;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cabecalho h2,
+.cabecalhoFormulario h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.buscaContainer {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.campoBusca {
+  width: 100%;
+  max-width: 500px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.tabelaResponsiva {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.formulario {
+  width: 100%;
+  max-width: 900px;
+  min-width: 0;
+}
+
+.cabecalhoFormulario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.gradeCampos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.campo label {
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.campoSomenteLeitura {
+  background: #f3f4f6;
+}
+
+.campoArquivo {
+  margin-top: 4px;
+}
+
+.observacaoBoleto {
+  display: block;
+  margin-top: 8px;
+  color: #666;
+  overflow-wrap: anywhere;
+}
+
+.acoesFormulario {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.acoesTabela {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.botaoVisualizar,
+.botaoEditar,
+.botaoExcluir,
+.botaoSalvar {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  white-space: normal;
+}
+
+.botaoVisualizar {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.botaoEditar {
+  background: #f3f4f6;
+  color: #1f2937;
+  border-color: #d1d5db;
+}
+
+.botaoExcluir {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.botaoSalvar {
+  background: #2563eb;
+  color: #fff;
+}
+
+.botaoSalvar:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 768px) {
+  .pagina {
+    padding: 14px;
+  }
+
+  .cabecalho,
+  .cabecalhoFormulario {
+    align-items: stretch;
+  }
+
+  .campoBusca {
+    max-width: 100%;
+  }
+
+  .acoesFormulario {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagina {
+    padding: 10px;
+  }
+
+  .cabecalho,
+  .cabecalhoFormulario {
+    gap: 12px;
+  }
+
+  .gradeCampos {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .acoesTabela {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .acoesTabela button,
+  .acoesFormulario button {
+    max-width: 100%;
+  }
+
+  .acoesFormulario {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

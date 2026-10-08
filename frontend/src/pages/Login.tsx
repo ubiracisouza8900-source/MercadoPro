@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -5,6 +6,8 @@ import axios from "axios";
 import Input from "../components/Input";
 import Botao from "../components/Botao";
 import api from "../services/api";
+
+import styles from "./Login.module.css";
 
 interface ErroApi {
   erro?: string;
@@ -22,9 +25,8 @@ const Login: React.FC = () => {
 
   const [lembrarLogin, setLembrarLogin] = useState(
     () =>
-      localStorage.getItem(
-        "mercadopro_lembrar_login"
-      ) === "true"
+      localStorage.getItem("mercadopro_lembrar_login") ===
+      "true"
   );
 
   const [erro, setErro] = useState("");
@@ -48,60 +50,29 @@ const Login: React.FC = () => {
         senha,
       });
 
-      const token: string | undefined =
-        resposta.data?.token;
+      const token: string | undefined = resposta.data?.token;
 
       if (!token) {
-        setErro(
-          "O servidor não retornou o token de acesso."
-        );
+        setErro("O servidor não retornou o token de acesso.");
         return;
       }
 
-      localStorage.setItem(
-        "mercadopro_token",
-        token
-      );
+      localStorage.setItem("mercadopro_token", token);
 
       if (lembrarLogin) {
-        localStorage.setItem(
-          "mercadopro_email",
-          email.trim()
-        );
-
-        localStorage.setItem(
-          "mercadopro_senha",
-          senha
-        );
-
-        localStorage.setItem(
-          "mercadopro_lembrar_login",
-          "true"
-        );
+        localStorage.setItem("mercadopro_email", email.trim());
+        localStorage.setItem("mercadopro_senha", senha);
+        localStorage.setItem("mercadopro_lembrar_login", "true");
       } else {
-        localStorage.removeItem(
-          "mercadopro_email"
-        );
-
-        localStorage.removeItem(
-          "mercadopro_senha"
-        );
-
-        localStorage.removeItem(
-          "mercadopro_lembrar_login"
-        );
+        localStorage.removeItem("mercadopro_email");
+        localStorage.removeItem("mercadopro_senha");
+        localStorage.removeItem("mercadopro_lembrar_login");
       }
 
-      console.log(
-        "✅ Login realizado com sucesso."
-      );
-
+      console.log("Login realizado com sucesso.");
       navigate("/dashboard");
     } catch (error: unknown) {
-      console.error(
-        "❌ Erro no login:",
-        error
-      );
+      console.error("Erro no login:", error);
 
       if (axios.isAxiosError<ErroApi>(error)) {
         const mensagem =
@@ -111,9 +82,7 @@ const Login: React.FC = () => {
 
         setErro(mensagem);
       } else {
-        setErro(
-          "Ocorreu um erro ao tentar fazer login."
-        );
+        setErro("Ocorreu um erro ao tentar fazer login.");
       }
     } finally {
       setCarregando(false);
@@ -121,62 +90,50 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-caixa">
-        <h2>MercadoPro</h2>
+    <main className={styles.loginContainer}>
+      <section className={styles.loginCaixa}>
+        <h2 className={styles.titulo}>MercadoPro</h2>
 
-        <p>Acesse sua conta</p>
+        <p className={styles.subtitulo}>Acesse sua conta</p>
 
-        <Input
-          label="E-mail"
-          tipo="email"
-          valor={email}
-          aoAlterar={setEmail}
-          placeholder="seu@email.com"
-        />
+        <div className={styles.campos}>
+          <Input
+            label="E-mail"
+            tipo="email"
+            valor={email}
+            aoAlterar={setEmail}
+            placeholder="seu@email.com"
+          />
 
-        <Input
-          label="Senha"
-          tipo="password"
-          valor={senha}
-          aoAlterar={setSenha}
-          placeholder="••••••••"
-          erro={erro}
-        />
+          <Input
+            label="Senha"
+            tipo="password"
+            valor={senha}
+            aoAlterar={setSenha}
+            placeholder="••••••••"
+            erro={erro}
+          />
+        </div>
 
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            marginTop: "12px",
-            marginBottom: "18px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
+        <label className={styles.lembrete}>
           <input
             type="checkbox"
             checked={lembrarLogin}
-            onChange={(e) =>
-              setLembrarLogin(e.target.checked)
-            }
+            onChange={(e) => setLembrarLogin(e.target.checked)}
           />
 
           <span>Lembrar login</span>
         </label>
 
-        <Botao
-          texto={
-            carregando
-              ? "Entrando..."
-              : "Entrar"
-          }
-          onClick={handleLogin}
-          fullWidth
-        />
-      </div>
-    </div>
+        <div className={styles.acaoLogin}>
+          <Botao
+            texto={carregando ? "Entrando..." : "Entrar"}
+            onClick={handleLogin}
+            fullWidth
+          />
+        </div>
+      </section>
+    </main>
   );
 };
 

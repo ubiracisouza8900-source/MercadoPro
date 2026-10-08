@@ -7,6 +7,8 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import "./App.css";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PDV from "./pages/PDV";
@@ -34,7 +36,6 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* Login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -184,7 +185,6 @@ const App: React.FC = () => {
             </LayoutPrincipal>
           }
         />
-
       </Routes>
     </BrowserRouter>
   );
