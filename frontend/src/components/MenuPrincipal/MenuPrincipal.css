@@ -9,20 +9,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+
+  min-height: 60px;
+  padding: 12px 8px;
+
   color: #fff;
+
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .menu-principal__titulo {
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .menu-principal__botao {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
+
+  flex-shrink: 0;
 
   width: 36px;
   height: 36px;
@@ -37,6 +45,10 @@
   line-height: 1;
 
   cursor: pointer;
+}
+
+.menu-principal__botao:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .menu-principal__lista {
@@ -58,6 +70,9 @@
   color: #d8dde5;
   text-decoration: none;
   font-size: 14px;
+
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .menu-principal__item:hover {
@@ -71,29 +86,15 @@
 
 .menu-principal__icone {
   width: 20px;
+  min-width: 20px;
   text-align: center;
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-  .menu-principal__cabecalho {
-    min-height: 60px;
-  }
-
-  .menu-principal__botao {
-    display: flex;
-  }
-
-  .menu-principal__lista {
-    display: none;
-  }
-
-  .menu-principal__lista--aberta {
-    display: flex;
-  }
-
-  .sidebar:not(.sidebar--aberto) .menu-principal__titulo {
-    display: none;
-  }
+/* FECHADO: ESCONDE OS LINKS */
+.sidebar:not(.sidebar--aberto) .menu-principal__titulo {
+  display: none;
 }
 
+.sidebar:not(.sidebar--aberto) .menu-principal__lista {
+  display: none;
+}
