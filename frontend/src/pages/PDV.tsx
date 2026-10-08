@@ -23,10 +23,11 @@ interface Produto {
 }
 
 interface Cliente {
-  clienteId: number;
+  cliente_id: number;
   nome: string;
   documento?: string;
   telefone?: string;
+  ativo?: boolean;
 }
 
 interface VendaCriada {
@@ -37,6 +38,7 @@ interface VendaCriada {
   total: number;
   formaPagamento: FormaPagamento;
   dataVenda: string;
+  vencimento?: string | null;
 }
 
 interface ItemVendaEnvio {
@@ -83,7 +85,8 @@ const PDV: React.FC = () => {
   const total = itens.reduce(
     (soma, item) =>
       soma +
-      item.quantidade * item.precoUnitario,
+      item.quantidade *
+        item.precoUnitario,
     0
   );
 
@@ -238,10 +241,34 @@ const PDV: React.FC = () => {
             )}`
           );
 
-          setClientes(
+          const dados =
             Array.isArray(resposta.data)
               ? resposta.data
-              : []
+              : [];
+
+          /*
+           * O backend retorna cliente_id.
+           * Normalizamos para o formato usado
+           * pelo frontend.
+           */
+          const clientesNormalizados =
+            dados
+              .map((cliente) => ({
+                ...cliente,
+                cliente_id: Number(
+                  cliente.cliente_id
+                ),
+              }))
+              .filter(
+                (cliente) =>
+                  Number.isInteger(
+                    cliente.cliente_id
+                  ) &&
+                  cliente.cliente_id > 0
+              );
+
+          setClientes(
+            clientesNormalizados
           );
         } catch (erro: unknown) {
           console.error(
@@ -268,7 +295,25 @@ const PDV: React.FC = () => {
   function selecionarCliente(
     cliente: Cliente
   ) {
-    setClienteSelecionado(cliente);
+    if (
+      !Number.isInteger(
+        Number(cliente.cliente_id)
+      ) ||
+      Number(cliente.cliente_id) <= 0
+    ) {
+      alert(
+        "Cliente inválido."
+      );
+      return;
+    }
+
+    setClienteSelecionado({
+      ...cliente,
+      cliente_id: Number(
+        cliente.cliente_id
+      ),
+    });
+
     setClienteBusca("");
     setClientes([]);
   }
@@ -393,7 +438,8 @@ const PDV: React.FC = () => {
       if (itemExistente) {
         setItens((atual) =>
           atual.map((item) =>
-            item.produtoId === produtoId
+            item.produtoId ===
+            produtoId
               ? {
                   ...item,
                   quantidade:
@@ -565,6 +611,23 @@ const PDV: React.FC = () => {
         return;
       }
 
+      const clienteId =
+        Number(
+          clienteSelecionado.cliente_id
+        );
+
+      if (
+        !Number.isInteger(
+          clienteId
+        ) ||
+        clienteId <= 0
+      ) {
+        alert(
+          "O cliente selecionado é inválido. Selecione o cliente novamente."
+        );
+        return;
+      }
+
       if (!vencimento) {
         alert(
           "Informe a data de vencimento da venda fiado."
@@ -625,6 +688,31 @@ const PDV: React.FC = () => {
       return;
     }
 
+    /*
+     * IMPORTANTE:
+     * O backend usa cliente_id.
+     * Aqui enviamos clienteId para o VendaController,
+     * que é exatamente o nome esperado por ele.
+     */
+    const clienteId =
+      formaPagamento === "fiado"
+        ? Number(
+            clienteSelecionado?.cliente_id
+          )
+        : null;
+
+   const clienteIdNumerico = Number(clienteId);
+
+if (
+  !Number.isInteger(clienteIdNumerico) ||
+  clienteIdNumerico <= 0
+) {
+      alert(
+        "Cliente inválido. Selecione o cliente novamente."
+      );
+      return;
+    }
+
     try {
       setCarregando(true);
 
@@ -632,9 +720,7 @@ const PDV: React.FC = () => {
         await api.post<VendaCriada>(
           "/vendas",
           {
-            clienteId:
-              clienteSelecionado?.clienteId ??
-              null,
+            clienteId,
 
             itens: itensVenda,
 
@@ -1298,10 +1384,12 @@ const PDV: React.FC = () => {
                     }}
                   >
                     {clientes.map(
-                      (cliente) => (
+                      (
+                        cliente
+                      ) => (
                         <button
                           key={
-                            cliente.clienteId
+                            cliente.cliente_id
                           }
                           type="button"
                           onClick={() =>

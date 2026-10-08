@@ -1,3 +1,4 @@
+
 import db from "../database/DB";
 
 export interface ItemVendaInput {
@@ -70,6 +71,24 @@ export const VendaModel = {
       );
     }
 
+    /*
+     * Validação específica do fiado.
+     * Fazemos antes de qualquer INSERT.
+     */
+    if (formaPagamento === "fiado") {
+      if (clienteIdNumerico === null) {
+        throw new Error(
+          "Cliente é obrigatório para venda fiado."
+        );
+      }
+
+      if (!vencimento) {
+        throw new Error(
+          "Data de vencimento é obrigatória para venda fiado."
+        );
+      }
+    }
+
     const client = await db.connect();
 
     try {
@@ -80,24 +99,32 @@ export const VendaModel = {
       for (const item of itens) {
         const produtoId = Number(item.produtoId);
         const quantidade = Number(item.quantidade);
-        const precoUnitario = Number(item.precoUnitario);
+        const precoUnitario = Number(
+          item.precoUnitario
+        );
 
         if (!Number.isInteger(produtoId)) {
-          throw new Error("ID do produto inválido.");
+          throw new Error(
+            "ID do produto inválido."
+          );
         }
 
         if (
           !Number.isFinite(quantidade) ||
           quantidade <= 0
         ) {
-          throw new Error("Quantidade inválida.");
+          throw new Error(
+            "Quantidade inválida."
+          );
         }
 
         if (
           !Number.isFinite(precoUnitario) ||
           precoUnitario < 0
         ) {
-          throw new Error("Preço inválido.");
+          throw new Error(
+            "Preço inválido."
+          );
         }
 
         const produto = await client.query(
@@ -241,19 +268,10 @@ export const VendaModel = {
         );
       }
 
+      /*
+       * FIADO
+       */
       if (formaPagamento === "fiado") {
-        if (clienteIdNumerico === null) {
-          throw new Error(
-            "Cliente é obrigatório para venda fiado."
-          );
-        }
-
-        if (!vencimento) {
-          throw new Error(
-            "Data de vencimento é obrigatória para venda fiado."
-          );
-        }
-
         await client.query(
           `
           INSERT INTO mercado_pro.contas_receber (
@@ -279,7 +297,12 @@ export const VendaModel = {
             vencimento,
           ]
         );
-      } else {
+      }
+
+      /*
+       * PAGAMENTOS NORMAIS
+       */
+      else {
         await client.query(
           `
           INSERT INTO mercado_pro.pagamentos_venda (
@@ -330,11 +353,8 @@ export const VendaModel = {
         );
 
         /*
-         * Atualiza o valor esperado somente
-         * quando a venda foi paga em dinheiro.
-         *
-         * PIX, crédito e débito não alteram
-         * o dinheiro físico esperado no caixa.
+         * Somente dinheiro altera
+         * o valor físico esperado do caixa.
          */
         if (formaPagamento === "dinheiro") {
           await client.query(
@@ -363,19 +383,27 @@ export const VendaModel = {
 
         clienteId:
           vendaCriada.cliente_id !== null
-            ? Number(vendaCriada.cliente_id)
+            ? Number(
+                vendaCriada.cliente_id
+              )
             : null,
 
         usuarioId:
-          Number(vendaCriada.usuario_id),
+          Number(
+            vendaCriada.usuario_id
+          ),
 
         caixaId:
           vendaCriada.caixa_id !== null
-            ? Number(vendaCriada.caixa_id)
+            ? Number(
+                vendaCriada.caixa_id
+              )
             : null,
 
         total:
-          Number(vendaCriada.total),
+          Number(
+            vendaCriada.total
+          ),
 
         formaPagamento:
           String(
@@ -384,6 +412,11 @@ export const VendaModel = {
 
         dataVenda:
           vendaCriada.data_venda,
+
+        vencimento:
+          formaPagamento === "fiado"
+            ? vencimento ?? null
+            : null,
       };
     } catch (erro) {
       await client.query("ROLLBACK");
@@ -397,7 +430,9 @@ export const VendaModel = {
     const idNumerico = Number(id);
 
     if (!Number.isInteger(idNumerico)) {
-      throw new Error("ID da venda inválido.");
+      throw new Error(
+        "ID da venda inválido."
+      );
     }
 
     const vendaResultado =
@@ -427,7 +462,8 @@ export const VendaModel = {
       return null;
     }
 
-    const venda = vendaResultado.rows[0];
+    const venda =
+      vendaResultado.rows[0];
 
     const itensResultado =
       await db.query<ItemVendaBanco>(
@@ -458,18 +494,24 @@ export const VendaModel = {
 
       clienteId:
         venda.clienteId !== null
-          ? Number(venda.clienteId)
+          ? Number(
+              venda.clienteId
+            )
           : null,
 
       clienteNome:
         venda.clienteNome ?? null,
 
       usuarioId:
-        Number(venda.usuarioId),
+        Number(
+          venda.usuarioId
+        ),
 
       caixaId:
         venda.caixaId !== null
-          ? Number(venda.caixaId)
+          ? Number(
+              venda.caixaId
+            )
           : null,
 
       total:
@@ -484,59 +526,80 @@ export const VendaModel = {
       vencimento:
         venda.vencimento ?? null,
 
-      itens: itens.map((item) => ({
-        itemVendaId:
-          Number(item.itemVendaId),
+      itens: itens.map(
+        (item) => ({
+          itemVendaId:
+            Number(
+              item.itemVendaId
+            ),
 
-        produtoId:
-          Number(item.produtoId),
+          produtoId:
+            Number(
+              item.produtoId
+            ),
 
-        produtoNome:
-          item.produtoNome,
+          produtoNome:
+            item.produtoNome,
 
-        codigoBarras:
-          item.codigoBarras !== null
-            ? String(item.codigoBarras)
-            : null,
+          codigoBarras:
+            item.codigoBarras !== null
+              ? String(
+                  item.codigoBarras
+                )
+              : null,
 
-        quantidade:
-          Number(item.quantidade),
+          quantidade:
+            Number(
+              item.quantidade
+            ),
 
-        precoUnitario:
-          Number(item.precoUnitario),
+          precoUnitario:
+            Number(
+              item.precoUnitario
+            ),
 
-        subtotal:
-          Number(item.subtotal),
-      })),
+          subtotal:
+            Number(
+              item.subtotal
+            ),
+        })
+      ),
     };
   },
 
   async listar() {
-    const resultado = await db.query(`
-      SELECT
-        venda_id AS "id",
-        cliente_id AS "clienteId",
-        usuario_id AS "usuarioId",
-        caixa_id AS "caixaId",
-        total,
-        forma_pagamento AS "formaPagamento",
-        data_venda AS "dataVenda"
-      FROM mercado_pro.vendas
-      ORDER BY venda_id DESC
-    `);
+    const resultado =
+      await db.query(`
+        SELECT
+          venda_id AS "id",
+          cliente_id AS "clienteId",
+          usuario_id AS "usuarioId",
+          caixa_id AS "caixaId",
+          total,
+          forma_pagamento AS "formaPagamento",
+          data_venda AS "dataVenda"
+        FROM mercado_pro.vendas
+        ORDER BY venda_id DESC
+      `);
 
     return resultado.rows;
   },
 
   async totalGeral(): Promise<number> {
-    const resultado = await db.query(`
-      SELECT
-        COALESCE(SUM(total), 0) AS total
-      FROM mercado_pro.vendas
-    `);
+    const resultado =
+      await db.query(`
+        SELECT
+          COALESCE(
+            SUM(total),
+            0
+          ) AS total
+        FROM mercado_pro.vendas
+      `);
 
     return Number(
       resultado.rows[0].total
     );
   },
 };
+
+
