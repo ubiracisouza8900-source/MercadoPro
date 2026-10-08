@@ -52,6 +52,35 @@ export const ContaPagarController = {
     return res.status(201).json(conta);
   },
 
+  async editar(
+    req: RequestAutenticado,
+    res: Response
+  ) {
+    const contaId = Number(req.params.id);
+
+    const {
+      fornecedorId,
+      descricao,
+      valor,
+      vencimento,
+      dataEmissao,
+    } = req.body;
+
+    const conta =
+      await ContaPagarService.editar(
+        contaId,
+        fornecedorId
+          ? Number(fornecedorId)
+          : null,
+        descricao,
+        Number(valor),
+        vencimento,
+        dataEmissao
+      );
+
+    return res.json(conta);
+  },
+
   async pagar(
     req: RequestAutenticado,
     res: Response

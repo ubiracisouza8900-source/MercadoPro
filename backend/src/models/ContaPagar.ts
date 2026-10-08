@@ -55,11 +55,9 @@ export const ContaPagarModel = {
       LEFT JOIN mercado_pro.pagamentos_contas_pagar pc
         ON pc.conta_pagar_id = cp.conta_pagar_id
 
-      GROUP BY
-        cp.conta_pagar_id
+      GROUP BY cp.conta_pagar_id
 
-      ORDER BY
-        cp.vencimento ASC
+      ORDER BY cp.vencimento ASC
     `);
 
     return resultado.rows.map(
@@ -79,9 +77,7 @@ export const ContaPagarModel = {
         ...conta,
         valor: Number(conta.valor),
         total_pago: Number(conta.total_pago),
-        saldo_restante: Number(
-          conta.saldo_restante
-        ),
+        saldo_restante: Number(conta.saldo_restante),
       })
     );
   },
@@ -119,8 +115,7 @@ export const ContaPagarModel = {
 
       WHERE cp.conta_pagar_id = $1
 
-      GROUP BY
-        cp.conta_pagar_id
+      GROUP BY cp.conta_pagar_id
       `,
       [id]
     );
@@ -135,9 +130,7 @@ export const ContaPagarModel = {
       ...conta,
       valor: Number(conta.valor),
       total_pago: Number(conta.total_pago),
-      saldo_restante: Number(
-        conta.saldo_restante
-      ),
+      saldo_restante: Number(conta.saldo_restante),
     };
   },
 
@@ -194,6 +187,59 @@ export const ContaPagarModel = {
     };
   },
 
+  async editar(
+    contaId: number,
+    fornecedorId: number | null,
+    descricao: string,
+    valor: number,
+    vencimento: string,
+    dataEmissao?: string
+  ): Promise<ContaPagar | undefined> {
+    const resultado = await db.query(
+      `
+      UPDATE mercado_pro.contas_pagar
+      SET
+        fornecedor_id = $1,
+        descricao = $2,
+        valor = $3,
+        vencimento = $4,
+        data_emissao = COALESCE($5::date, data_emissao),
+        atualizado_em = CURRENT_TIMESTAMP
+      WHERE conta_pagar_id = $6
+        AND status NOT IN ('paga', 'cancelada')
+      RETURNING
+        conta_pagar_id,
+        fornecedor_id,
+        descricao,
+        valor,
+        vencimento,
+        data_emissao,
+        status,
+        criado_em,
+        atualizado_em
+      `,
+      [
+        fornecedorId,
+        descricao,
+        valor,
+        vencimento,
+        dataEmissao ?? null,
+        contaId,
+      ]
+    );
+
+    if (resultado.rows.length === 0) {
+      return undefined;
+    }
+
+    const conta = resultado.rows[0];
+
+    return {
+      ...conta,
+      valor: Number(conta.valor),
+    };
+  },
+
   async atualizarStatus(
     contaId: number
   ): Promise<void> {
@@ -211,7 +257,7 @@ export const ContaPagarModel = {
               ),
               0
             ) >= cp.valor
-              THEN 'pago'
+              THEN 'paga'
 
             WHEN COALESCE(
               (
@@ -279,7 +325,7 @@ export const ContaPagarModel = {
         );
       }
 
-      if (statusAtual === "pago") {
+      if (statusAtual === "paga") {
         throw new Error(
           "Esta conta a pagar já está paga."
         );
@@ -448,7 +494,7 @@ export const ContaPagarModel = {
 
       const novoStatus =
         novoTotalPago >= valorConta
-          ? "pago"
+          ? "paga"
           : "parcial";
 
       await client.query(
@@ -576,7 +622,7 @@ export const ContaPagarModel = {
         status = 'cancelada',
         atualizado_em = CURRENT_TIMESTAMP
       WHERE conta_pagar_id = $1
-        AND status <> 'pago'
+        AND status <> 'paga'
       RETURNING
         conta_pagar_id,
         fornecedor_id,

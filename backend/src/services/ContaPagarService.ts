@@ -14,7 +14,8 @@ export const ContaPagarService = {
       );
     }
 
-    const conta = await ContaPagarModel.buscarPorId(id);
+    const conta =
+      await ContaPagarModel.buscarPorId(id);
 
     if (!conta) {
       throw new ErroHttp(
@@ -55,6 +56,76 @@ export const ContaPagarService = {
     }
 
     return ContaPagarModel.criar(
+      fornecedorId,
+      descricao.trim(),
+      valor,
+      vencimento,
+      dataEmissao
+    );
+  },
+
+  async editar(
+    contaId: number,
+    fornecedorId: number | null,
+    descricao: string,
+    valor: number,
+    vencimento: string,
+    dataEmissao?: string
+  ) {
+    if (!contaId || contaId <= 0) {
+      throw new ErroHttp(
+        "ID da conta a pagar inválido.",
+        400
+      );
+    }
+
+    if (!descricao?.trim()) {
+      throw new ErroHttp(
+        "A descrição é obrigatória.",
+        400
+      );
+    }
+
+    if (!valor || valor <= 0) {
+      throw new ErroHttp(
+        "O valor deve ser maior que zero.",
+        400
+      );
+    }
+
+    if (!vencimento) {
+      throw new ErroHttp(
+        "O vencimento é obrigatório.",
+        400
+      );
+    }
+
+    const conta =
+      await ContaPagarModel.buscarPorId(contaId);
+
+    if (!conta) {
+      throw new ErroHttp(
+        "Conta a pagar não encontrada.",
+        404
+      );
+    }
+
+    if (conta.status === "paga") {
+      throw new ErroHttp(
+        "Não é possível editar uma conta já paga.",
+        400
+      );
+    }
+
+    if (conta.status === "cancelada") {
+      throw new ErroHttp(
+        "Não é possível editar uma conta cancelada.",
+        400
+      );
+    }
+
+    return ContaPagarModel.editar(
+      contaId,
       fornecedorId,
       descricao.trim(),
       valor,
@@ -143,17 +214,14 @@ export const ContaPagarService = {
       );
     }
 
-    const pagamento =
-      await ContaPagarModel.registrarPagamento(
-        contaId,
-        usuarioId,
-        caixaId,
-        formaPagamento,
-        valor,
-        observacao
-      );
-
-    return pagamento;
+    return ContaPagarModel.registrarPagamento(
+      contaId,
+      usuarioId,
+      caixaId,
+      formaPagamento,
+      valor,
+      observacao
+    );
   },
 
   async listarPagamentos(contaId: number) {

@@ -14,6 +14,11 @@ router.post(
   ContaPagarController.criar
 );
 
+router.put(
+  "/:id",
+  ContaPagarController.editar
+);
+
 router.get(
   "/:id/pagamentos",
   ContaPagarController.listarPagamentos
