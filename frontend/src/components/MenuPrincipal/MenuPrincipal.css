@@ -1,3 +1,4 @@
+
 .menu-principal {
   display: flex;
   flex-direction: column;
@@ -8,9 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 12px 16px;
-
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -22,7 +21,6 @@
 
 .menu-principal__botao {
   display: none;
-
   align-items: center;
   justify-content: center;
 
@@ -78,6 +76,10 @@
 
 /* MOBILE */
 @media (max-width: 768px) {
+  .menu-principal__cabecalho {
+    min-height: 60px;
+  }
+
   .menu-principal__botao {
     display: flex;
   }
@@ -89,4 +91,9 @@
   .menu-principal__lista--aberta {
     display: flex;
   }
+
+  .sidebar:not(.sidebar--aberto) .menu-principal__titulo {
+    display: none;
+  }
 }
+
