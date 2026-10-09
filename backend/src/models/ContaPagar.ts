@@ -1,3 +1,4 @@
+
 import db from "../database/DB";
 
 export interface ContaPagar {
@@ -39,24 +40,15 @@ export const ContaPagarModel = {
         cp.status,
         cp.criado_em,
         cp.atualizado_em,
-
-        COALESCE(
-          SUM(pc.valor),
-          0
-        ) AS total_pago,
-
+        COALESCE(SUM(pc.valor), 0) AS total_pago,
         GREATEST(
           cp.valor - COALESCE(SUM(pc.valor), 0),
           0
         ) AS saldo_restante
-
       FROM mercado_pro.contas_pagar cp
-
       LEFT JOIN mercado_pro.pagamentos_contas_pagar pc
         ON pc.conta_pagar_id = cp.conta_pagar_id
-
       GROUP BY cp.conta_pagar_id
-
       ORDER BY cp.vencimento ASC
     `);
 
@@ -97,24 +89,15 @@ export const ContaPagarModel = {
         cp.status,
         cp.criado_em,
         cp.atualizado_em,
-
-        COALESCE(
-          SUM(pc.valor),
-          0
-        ) AS total_pago,
-
+        COALESCE(SUM(pc.valor), 0) AS total_pago,
         GREATEST(
           cp.valor - COALESCE(SUM(pc.valor), 0),
           0
         ) AS saldo_restante
-
       FROM mercado_pro.contas_pagar cp
-
       LEFT JOIN mercado_pro.pagamentos_contas_pagar pc
         ON pc.conta_pagar_id = cp.conta_pagar_id
-
       WHERE cp.conta_pagar_id = $1
-
       GROUP BY cp.conta_pagar_id
       `,
       [id]
@@ -247,36 +230,30 @@ export const ContaPagarModel = {
       `
       UPDATE mercado_pro.contas_pagar cp
       SET
-        status =
-          CASE
-            WHEN COALESCE(
-              (
-                SELECT SUM(pc.valor)
-                FROM mercado_pro.pagamentos_contas_pagar pc
-                WHERE pc.conta_pagar_id = cp.conta_pagar_id
-              ),
-              0
-            ) >= cp.valor
-              THEN 'paga'
-
-            WHEN COALESCE(
-              (
-                SELECT SUM(pc.valor)
-                FROM mercado_pro.pagamentos_contas_pagar pc
-                WHERE pc.conta_pagar_id = cp.conta_pagar_id
-              ),
-              0
-            ) > 0
-              THEN 'parcial'
-
-            WHEN cp.vencimento < CURRENT_DATE
-              THEN 'vencida'
-
-            ELSE 'aberta'
-          END,
-
+        status = CASE
+          WHEN COALESCE(
+            (
+              SELECT SUM(pc.valor)
+              FROM mercado_pro.pagamentos_contas_pagar pc
+              WHERE pc.conta_pagar_id = cp.conta_pagar_id
+            ),
+            0
+          ) >= cp.valor
+            THEN 'paga'
+          WHEN COALESCE(
+            (
+              SELECT SUM(pc.valor)
+              FROM mercado_pro.pagamentos_contas_pagar pc
+              WHERE pc.conta_pagar_id = cp.conta_pagar_id
+            ),
+            0
+          ) > 0
+            THEN 'parcial'
+          WHEN cp.vencimento < CURRENT_DATE
+            THEN 'vencida'
+          ELSE 'aberta'
+        END,
         atualizado_em = CURRENT_TIMESTAMP
-
       WHERE cp.conta_pagar_id = $1
       `,
       [contaId]
@@ -310,14 +287,10 @@ export const ContaPagarModel = {
       );
 
       if (conta.rows.length === 0) {
-        throw new Error(
-          "Conta a pagar não encontrada."
-        );
+        throw new Error("Conta a pagar não encontrada.");
       }
 
-      const statusAtual = String(
-        conta.rows[0].status
-      );
+      const statusAtual = String(conta.rows[0].status);
 
       if (statusAtual === "cancelada") {
         throw new Error(
@@ -326,15 +299,12 @@ export const ContaPagarModel = {
       }
 
       if (statusAtual === "paga") {
-        throw new Error(
-          "Esta conta a pagar já está paga."
-        );
+        throw new Error("Esta conta a pagar já está paga.");
       }
 
       const pagamentos = await client.query(
         `
-        SELECT
-          COALESCE(SUM(valor), 0) AS total_pago
+        SELECT COALESCE(SUM(valor), 0) AS total_pago
         FROM mercado_pro.pagamentos_contas_pagar
         WHERE conta_pagar_id = $1
         `,
@@ -345,12 +315,8 @@ export const ContaPagarModel = {
         pagamentos.rows[0].total_pago || 0
       );
 
-      const valorConta = Number(
-        conta.rows[0].valor
-      );
-
-      const saldoRestante =
-        valorConta - totalPago;
+      const valorConta = Number(conta.rows[0].valor);
+      const saldoRestante = valorConta - totalPago;
 
       if (valor <= 0) {
         throw new Error(
@@ -377,19 +343,11 @@ export const ContaPagarModel = {
         "debito",
       ];
 
-      if (
-        !formasPagamento.includes(
-          formaPagamento
-        )
-      ) {
-        throw new Error(
-          "Forma de pagamento inválida."
-        );
+      if (!formasPagamento.includes(formaPagamento)) {
+        throw new Error("Forma de pagamento inválida.");
       }
 
-      if (
-        formaPagamento === "dinheiro"
-      ) {
+      if (formaPagamento === "dinheiro") {
         if (!caixaId) {
           throw new Error(
             "É necessário informar um caixa aberto para pagamento em dinheiro."
@@ -411,26 +369,18 @@ export const ContaPagarModel = {
         );
 
         if (caixa.rows.length === 0) {
-          throw new Error(
-            "Caixa não encontrado."
-          );
+          throw new Error("Caixa não encontrado.");
         }
 
-        if (
-          caixa.rows[0].status !==
-          "aberto"
-        ) {
-          throw new Error(
-            "O caixa informado está fechado."
-          );
+        if (caixa.rows[0].status !== "aberto") {
+          throw new Error("O caixa informado está fechado.");
         }
 
-        const valorDisponivel =
-          Number(
-            caixa.rows[0].valor_esperado ??
-              caixa.rows[0].saldo_inicial ??
-              0
-          );
+        const valorDisponivel = Number(
+          caixa.rows[0].valor_esperado ??
+            caixa.rows[0].saldo_inicial ??
+            0
+        );
 
         if (valorDisponivel < 0) {
           throw new Error(
@@ -440,62 +390,47 @@ export const ContaPagarModel = {
 
         if (valor > valorDisponivel) {
           throw new Error(
-            `Saldo insuficiente no caixa. Disponível: R$ ${valorDisponivel.toFixed(
-              2
-            )}.`
+            `Saldo insuficiente no caixa. Disponível: R$ ${valorDisponivel.toFixed(2)}.`
           );
         }
       }
 
-      const pagamento =
-        await client.query(
-          `
-          INSERT INTO mercado_pro.pagamentos_contas_pagar (
-            conta_pagar_id,
-            usuario_id,
-            caixa_id,
-            forma_pagamento,
-            valor,
-            observacao
-          )
-          VALUES (
-            $1,
-            $2,
-            $3,
-            $4,
-            $5,
-            $6
-          )
-          RETURNING
-            pagamento_conta_pagar_id,
-            conta_pagar_id,
-            usuario_id,
-            caixa_id,
-            forma_pagamento,
-            valor,
-            pago_em,
-            observacao,
-            criado_em
-          `,
-          [
-            contaId,
-            usuarioId,
-            formaPagamento === "dinheiro"
-              ? caixaId
-              : null,
-            formaPagamento,
-            valor,
-            observacao ?? null,
-          ]
-        );
+      const pagamento = await client.query(
+        `
+        INSERT INTO mercado_pro.pagamentos_contas_pagar (
+          conta_pagar_id,
+          usuario_id,
+          caixa_id,
+          forma_pagamento,
+          valor,
+          observacao
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING
+          pagamento_conta_pagar_id,
+          conta_pagar_id,
+          usuario_id,
+          caixa_id,
+          forma_pagamento,
+          valor,
+          pago_em,
+          observacao,
+          criado_em
+        `,
+        [
+          contaId,
+          usuarioId,
+          formaPagamento === "dinheiro" ? caixaId : null,
+          formaPagamento,
+          valor,
+          observacao ?? null,
+        ]
+      );
 
-      const novoTotalPago =
-        totalPago + valor;
+      const novoTotalPago = totalPago + valor;
 
       const novoStatus =
-        novoTotalPago >= valorConta
-          ? "paga"
-          : "parcial";
+        novoTotalPago >= valorConta ? "paga" : "parcial";
 
       await client.query(
         `
@@ -505,15 +440,10 @@ export const ContaPagarModel = {
           atualizado_em = CURRENT_TIMESTAMP
         WHERE conta_pagar_id = $2
         `,
-        [
-          novoStatus,
-          contaId,
-        ]
+        [novoStatus, contaId]
       );
 
-      if (
-        formaPagamento === "dinheiro"
-      ) {
+      if (formaPagamento === "dinheiro") {
         await client.query(
           `
           INSERT INTO mercado_pro.movimentacoes_caixa (
@@ -524,14 +454,7 @@ export const ContaPagarModel = {
             valor,
             forma_pagamento
           )
-          VALUES (
-            $1,
-            $2,
-            'saida',
-            $3,
-            $4,
-            $5
-          )
+          VALUES ($1, $2, 'saida', $3, $4, $5)
           `,
           [
             caixaId,
@@ -546,18 +469,14 @@ export const ContaPagarModel = {
           `
           UPDATE mercado_pro.caixa
           SET
-            valor_esperado =
-              COALESCE(
-                valor_esperado,
-                saldo_inicial
-              ) - $1
+            valor_esperado = COALESCE(
+              valor_esperado,
+              saldo_inicial
+            ) - $1
           WHERE caixa_id = $2
             AND status = 'aberto'
           `,
-          [
-            valor,
-            caixaId,
-          ]
+          [valor, caixaId]
         );
       }
 
@@ -568,12 +487,20 @@ export const ContaPagarModel = {
 
       return {
         ...pagamentoCriado,
-        valor: Number(
-          pagamentoCriado.valor
-        ),
+        valor: Number(pagamentoCriado.valor),
       };
-    } catch (erro) {
-      await client.query("ROLLBACK");
+    } catch (erro: unknown) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (erroRollback: unknown) {
+        console.error(
+          "Erro ao desfazer transação:",
+          erroRollback instanceof Error
+            ? erroRollback.message
+            : "Erro desconhecido."
+        );
+      }
+
       throw erro;
     } finally {
       client.release();
@@ -605,9 +532,7 @@ export const ContaPagarModel = {
     return resultado.rows.map(
       (pagamento: PagamentoContaPagar) => ({
         ...pagamento,
-        valor: Number(
-          pagamento.valor
-        ),
+        valor: Number(pagamento.valor),
       })
     );
   },
@@ -641,14 +566,11 @@ export const ContaPagarModel = {
       return undefined;
     }
 
-    const conta =
-      resultado.rows[0] as ContaPagar;
+    const conta = resultado.rows[0] as ContaPagar;
 
     return {
       ...conta,
-      valor: Number(
-        conta.valor
-      ),
+      valor: Number(conta.valor),
     };
   },
 };
