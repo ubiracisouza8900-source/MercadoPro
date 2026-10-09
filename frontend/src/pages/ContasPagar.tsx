@@ -26,12 +26,16 @@ mensagem?: string;
 
 type FormaPagamento = "dinheiro" | "pix" | "credito" | "debito";
 
+
 type StatusContaPagar =
-| "aberta"
-| "vencida"
-| "parcial"
-| "pago"
-| "cancelada";
+  | "aberta"
+  | "vencida"
+  | "parcial"
+  | "pago"
+  | "paga"
+  | "cancelada";
+
+
 
 const ContasPagar: React.FC = () => {
 const [contas, setContas] = useState<ContaPagar[]>([]);
@@ -434,47 +438,56 @@ render: (valor) =>
 situacao(String(valor) as ContaPagar["status"]),
 },
 {
-chave: "conta_pagar_id",
-titulo: "Ações",
-render: (_valor, conta) => ( <div className={styles.acoesTabela}>
-{obterStatus(conta.status) !== "cancelada" &&
-obterStatus(conta.status) !== "pago" && (
-<Botao
-texto="Editar"
-variante="secundario"
-onClick={() => abrirModalEdicao(conta)}
-/>
-)}
+  chave: "conta_pagar_id",
+  titulo: "Ações",
+  render: (_valor, conta) => {
+    const statusAtual = obterStatus(conta.status);
 
+    if (
+      statusAtual === "pago" ||
+      statusAtual === "paga" ||
+      statusAtual === "cancelada"
+    ) {
+      return <span>{situacao(conta.status)}</span>;
+    }
 
-      {podePagar(conta.status) && (
+    return (
+      <div className={styles.acoesTabela}>
         <Botao
-          texto="Pagar"
+          texto="Editar"
           variante="secundario"
-          onClick={() => abrirModalPagamento(conta)}
+          onClick={() => abrirModalEdicao(conta)}
         />
-      )}
 
-      {obterStatus(conta.status) !== "cancelada" &&
-        obterStatus(conta.status) !== "pago" && (
+        {podePagar(conta.status) && (
           <Botao
-            texto="Cancelar"
+            texto="Pagar"
             variante="secundario"
-            onClick={() => cancelarConta(conta)}
+            onClick={() => abrirModalPagamento(conta)}
           />
         )}
-    </div>
-  ),
+
+        <Botao
+          texto="Cancelar"
+          variante="secundario"
+          onClick={() => cancelarConta(conta)}
+        />
+      </div>
+    );
+  },
 },
-
-
 ];
 
-return ( <main className={styles.pagina}> <div className={styles.cabecalho}> <h2>Contas a Pagar</h2> <Botao
-       texto="+ Nova Conta"
-       variante="primario"
-       onClick={abrirModal}
-     /> </div>
+return (
+  <main className={styles.pagina}>
+    <div className={styles.cabecalho}>
+      <h2>Contas a Pagar</h2>
+      <Botao
+        texto="+ Nova Conta"
+        variante="primario"
+        onClick={abrirModal}
+      />
+    </div>
 
 
   {carregando && <p>Carregando contas...</p>}
